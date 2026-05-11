@@ -1,0 +1,33 @@
+# Brainstorm 临时数据
+.superpowers/
+
+# 原始参考脚本(独立 git 仓库)
+llm-data-create/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Node
+node_modules/
+dist/
+.vite/
+
+# 本地数据
+data/
+logs/
+*.db
+*.sqlite
+*.sqlite-journal
+*.sqlite-wal
+*.sqlite-shm
+
+# IDE / OS
+.DS_Store
+.idea/
+.vscode/
+.claude/
+*.swp
