@@ -7,10 +7,13 @@ def test_startup_creates_db_and_tables(tmp_path, monkeypatch):
     monkeypatch.setenv("LOG_DIR", str(tmp_path / "logs"))
     monkeypatch.setenv("DB_PATH", str(tmp_path / "app.db"))
     from importlib import reload
-    import service.config as cfg; reload(cfg)
-    import service.db as dbmod; reload(dbmod)
-    import service.models as modelsmod; reload(modelsmod)
-    import service.main as mainmod; reload(mainmod)
+    import sys
+    for mod in [m for m in list(sys.modules) if m == "service" or m.startswith("service.")]:
+        sys.modules.pop(mod, None)
+    import service.config as cfg  # noqa: F401
+    import service.db as dbmod
+    import service.models  # noqa: F401  register tables
+    import service.main as mainmod
 
     with TestClient(mainmod.app) as client:
         r = client.get("/healthz")
