@@ -6,6 +6,8 @@ import { TaskProgress } from './TaskProgress';
 import { TaskEventTimeline } from './TaskEventTimeline';
 import { SSEStatusBadge } from './SSEStatusBadge';
 import { useLocation } from 'wouter';
+import { TaskPreview } from './TaskPreview';
+import { TaskLogViewer } from './TaskLogViewer';
 
 interface Props {
   task: TaskDetailType;
@@ -73,6 +75,14 @@ export function TaskDetail({ task }: Props) {
 
       <Card title="事件记录" style={{ marginTop: 16 }}>
         <TaskEventTimeline events={task.recent_events} />
+      </Card>
+
+      <Card title="数据预览" style={{ marginTop: 16 }}>
+        <TaskPreview taskId={task.id} />
+      </Card>
+
+      <Card title="运行日志" style={{ marginTop: 16 }}>
+        <TaskLogViewer taskId={task.id} />
       </Card>
     </div>
   );
