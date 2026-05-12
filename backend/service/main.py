@@ -17,6 +17,9 @@ async def lifespan(app: FastAPI):
     settings.ensure_dirs()
     dbmod.init_engine()
     dbmod.Base.metadata.create_all(dbmod.engine)
+    # Late import — supervisor depends on engine being initialized.
+    from service import supervisor
+    supervisor.recover_orphaned_running()
     yield
 
 
