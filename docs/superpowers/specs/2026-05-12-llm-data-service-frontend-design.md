@@ -106,6 +106,8 @@ frontend/
 
 ### 5.1 任务列表页
 
+后端只支持 `status`、`category_id`、`page`、`size` 参数，返回 `list[TaskOut]` **无 total 计数**。前端分页降级为简单翻页（上一页/下一页），不显示总页数；排序在前端内存中完成。
+
 ```
 HomePage
 └── useTaskList(filters)        // useQuery(['tasks', filters], fetchTasks)
@@ -155,49 +157,50 @@ TaskDetailPage
 
 ### EventSource 封装 (`useTaskStream`)
 
+后端发送命名 SSE 事件（`event` 和 `finished`），必须用 `addEventListener` 注册，不能用 `onmessage`。浏览器原生 `EventSource` 断线后会**自动重连**，并自动在重连请求中携带 `Last-Event-ID` header（后端 `tasks_stream.py:19` 已处理）。**不在 `onerror` 中手动 `close()` + 重建**，否则会丢失 last event id 上下文。
+
 ```typescript
 function useTaskStream(taskId: number) {
   const setSseState = useAppStore(s => s.setSseState);
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    let es: EventSource | null = null;
-    let retryDelay = 3000;
-    let retryTimer: ReturnType<typeof setTimeout>;
+    const es = new EventSource(`/api/tasks/${taskId}/stream`);
+    let closedByUs = false;
 
-    const connect = () => {
-      setSseState(taskId, 'connecting');
-      es = new EventSource(`/api/tasks/${taskId}/stream`);
+    es.addEventListener('open', () => {
+      setSseState(taskId, 'connected');
+    });
 
-      es.onmessage = (e) => {
-        const data = JSON.parse(e.data);
-        // 刷新任务详情
-        queryClient.invalidateQueries({ queryKey: ['task', taskId] });
-        // 如果任务已结束，关闭连接
-        if (data.status && ['succeeded', 'failed', 'aborted'].includes(data.status)) {
-          es?.close();
-          setSseState(taskId, 'closed');
-        }
-      };
+    es.addEventListener('event', (e: MessageEvent) => {
+      const data = JSON.parse(e.data);
+      // 刷新任务详情（自动拉取最新 events + status）
+      queryClient.invalidateQueries({ queryKey: ['task', taskId] });
+    });
 
-      es.onerror = () => {
+    es.addEventListener('finished', (e: MessageEvent) => {
+      const data = JSON.parse(e.data);
+      queryClient.invalidateQueries({ queryKey: ['task', taskId] });
+      closedByUs = true;
+      es.close();
+      setSseState(taskId, 'closed');
+    });
+
+    es.addEventListener('error', () => {
+      // 依赖浏览器原生自动重连；浏览器会自动带 Last-Event-ID
+      // 状态变化：connected → reconnecting（浏览器内部）→ connected
+      if (es.readyState === EventSource.CONNECTING) {
         setSseState(taskId, 'reconnecting');
-        es?.close();
-        retryTimer = setTimeout(connect, retryDelay);
-        retryDelay = Math.min(retryDelay * 2, 30000);
-      };
+      }
+      // 如果浏览器长期重连失败（如网络恢复后），由轮询兜底
+    });
 
-      es.onopen = () => {
-        setSseState(taskId, 'connected');
-        retryDelay = 3000; // 重置退避
-      };
-    };
-
-    connect();
-    return () => { es?.close(); clearTimeout(retryTimer); };
+    return () => { closedByUs = true; es.close(); };
   }, [taskId]);
 }
 ```
+
+**重连兜底：** 原生 EventSource 自动重连间隔固定约 3s，如果超过 60s 仍未恢复，轮询机制（`useTaskPolling` 3s 间隔）会保持数据新鲜。如果确实需要程序控制重连（如用户点击"刷新"按钮），应先通过 `GET /api/tasks/{taskId}/events?since_id=<last_id>` 补拉遗漏事件，再重建连接。
 
 ### SSE 状态（Zustand）
 
@@ -312,8 +315,8 @@ export interface PromptTemplateOut {
 | API 404（任务不存在） | 跳转 404 页面 |
 | API 409（任务已结束，无法 abort） | Toast warning，按钮禁用 |
 | API 400（表单校验失败） | 表单内显示错误信息 |
-| SSE 断线 | SSEStatusBadge 显示"重连中" + 自动重试 |
-| SSE 持续断线（>60s） | Toast error + 提示手动刷新 |
+| SSE 断线 | SSEStatusBadge 显示"重连中"（浏览器原生自动重连） |
+| SSE 持续断线（>60s） | 轮询兜底保持数据新鲜，Toast 提示网络异常 |
 | 下载失败 | Toast error + 保留按钮可重试 |
 
 ## 9. 路由设计
