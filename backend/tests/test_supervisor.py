@@ -178,3 +178,28 @@ def test_recover_orphans_marks_stuck_pidless_task_failed(tmp_path, monkeypatch):
     with dbmod.SessionLocal() as s:
         t = s.get(models.Task, task_id)
         assert t.status == "failed"
+
+
+def test_spawn_worker_bails_when_task_already_terminal(tmp_path, monkeypatch):
+    dbmod = _fresh_env(tmp_path, monkeypatch)
+    task_id = _seed_pending_task(dbmod)
+    from service import crud, models, supervisor
+
+    # Pre-finish the task before spawn_worker is called
+    with dbmod.SessionLocal() as s:
+        crud.mark_task_finished(s, task_id, "succeeded")
+
+    pid = supervisor.spawn_worker(task_id, mock_llm=True)
+    assert pid is None
+
+    with dbmod.SessionLocal() as s:
+        t = s.get(models.Task, task_id)
+        # Status preserved
+        assert t.status == "succeeded"
+        # A warning event was emitted
+        events = s.query(models.TaskEvent).filter_by(task_id=task_id).all()
+        warnings = [e for e in events if e.type == "warning"]
+        assert any(
+            "skipped" in (e.message or "").lower() and "spawn" in (e.message or "").lower()
+            for e in warnings
+        )

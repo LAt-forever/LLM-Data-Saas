@@ -35,8 +35,13 @@ def _reap_known_child(pid: int) -> bool | None:
     return False
 
 
-def spawn_worker(task_id: int, *, mock_llm: bool = False) -> int:
-    """Spawn a worker subprocess for the given task. Returns its pid."""
+def spawn_worker(task_id: int, *, mock_llm: bool = False) -> int | None:
+    """Spawn a worker subprocess for the given task.
+
+    Returns the spawned pid on success, or ``None`` if the spawn was
+    skipped because the task was already in a terminal state when
+    ``mark_task_started`` ran (no-op path). In the skipped case a
+    ``warning`` TaskEvent is recorded and no child process is started."""
     out_dir = settings.task_dir(task_id)
     out_dir.mkdir(parents=True, exist_ok=True)
 
@@ -47,18 +52,25 @@ def spawn_worker(task_id: int, *, mock_llm: bool = False) -> int:
     log_path = settings.task_log(task_id)
     log_path.parent.mkdir(parents=True, exist_ok=True)
 
-    # Write output_dir to the DB BEFORE Popen so the child always reads a
-    # populated value. pid=0 is a placeholder; the real pid is patched in
-    # below via set_task_worker_pid. This also fixes a latent race where a
-    # very fast child could mark the task terminal before the parent's
-    # mark_task_started landed (mark_task_started now no-ops in that case).
+    # Order: mark_task_started BEFORE Popen so the child always sees a
+    # populated output_dir (the child reads task.output_dir on startup).
+    # Defense-in-depth: mark_task_started silently no-ops if another code
+    # path has already marked this task terminal, so we never overwrite
+    # terminal status from here.
     if dbmod.SessionLocal is None:
         dbmod.init_engine()
         dbmod.Base.metadata.create_all(dbmod.engine)
     with dbmod.SessionLocal() as s:
-        crud.mark_task_started(s, task_id,
-                               worker_pid=0,
-                               output_dir=str(out_dir))
+        task = crud.mark_task_started(s, task_id,
+                                      worker_pid=0,
+                                      output_dir=str(out_dir))
+        if task.status in ("succeeded", "failed", "aborted"):
+            # mark_task_started no-op'd because the task is already
+            # terminal. Don't spawn an orphan worker against a closed task.
+            crud.add_task_event(
+                s, task_id, "warning",
+                f"spawn_worker skipped: task already {task.status}")
+            return None
 
     with open(log_path, "a", encoding="utf-8") as log_fh:
         proc = subprocess.Popen(
