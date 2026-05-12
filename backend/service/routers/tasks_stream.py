@@ -28,4 +28,4 @@ async def stream(id_: int, request: Request) -> EventSourceResponse:
                 break
             yield evt
 
-    return EventSourceResponse(proxy())
+    return EventSourceResponse(proxy(), ping=15)

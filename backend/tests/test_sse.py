@@ -77,6 +77,12 @@ async def test_sse_streams_events_and_closes_on_terminal(tmp_path, monkeypatch):
     msgs = [json.loads(e["data"]).get("message", "") for e in received
             if "data" in e]
     assert any("2/5" in m or "4/5" in m for m in msgs)
+    # This is the event the worker writes AFTER mark_task_finished — it must
+    # survive the terminal race. Adding this assertion would have caught the
+    # lost-event bug fixed by the events_since drain.
+    assert any("done" in m for m in msgs), (
+        "the worker's final 'done' event was lost — likely the terminal-flip race"
+    )
 
 
 @pytest.mark.asyncio
