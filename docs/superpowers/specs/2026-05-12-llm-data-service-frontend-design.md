@@ -126,8 +126,8 @@ TaskDetailPage (taskId)
 │   ├── 连接 /api/tasks/{taskId}/stream
 │   ├── 收到 event → queryClient.invalidateQueries(['task', taskId])
 │   │   └── TanStack Query 自动刷新详情数据
-│   ├── 任务变为 terminal → 主动 close EventSource
-│   └── 断线 → 3s 后重连（指数退避，最大 30s）
+│   ├── 收到 finished 事件 → 主动 close EventSource
+│   └── 断线 → 浏览器原生自动重连（自动带 Last-Event-ID），轮询兜底
 ├── useTaskPreview(taskId)      // useQuery(['preview', taskId], fetchPreview)
 ├── useTaskLog(taskId)          // useQuery(['log', taskId], fetchLog)
 └── useTaskEvents(taskId)       // useQuery(['events', taskId], fetchEvents)
