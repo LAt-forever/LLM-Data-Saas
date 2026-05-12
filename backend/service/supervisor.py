@@ -5,6 +5,7 @@ import subprocess
 import sys
 import threading
 import time
+from datetime import datetime, timezone
 
 from service import crud, db as dbmod, models
 from service.config import settings
@@ -45,6 +46,20 @@ def spawn_worker(task_id: int, *, mock_llm: bool = False) -> int:
 
     log_path = settings.task_log(task_id)
     log_path.parent.mkdir(parents=True, exist_ok=True)
+
+    # Write output_dir to the DB BEFORE Popen so the child always reads a
+    # populated value. pid=0 is a placeholder; the real pid is patched in
+    # below via set_task_worker_pid. This also fixes a latent race where a
+    # very fast child could mark the task terminal before the parent's
+    # mark_task_started landed (mark_task_started now no-ops in that case).
+    if dbmod.SessionLocal is None:
+        dbmod.init_engine()
+        dbmod.Base.metadata.create_all(dbmod.engine)
+    with dbmod.SessionLocal() as s:
+        crud.mark_task_started(s, task_id,
+                               worker_pid=0,
+                               output_dir=str(out_dir))
+
     with open(log_path, "a", encoding="utf-8") as log_fh:
         proc = subprocess.Popen(
             cmd,
@@ -57,14 +72,10 @@ def spawn_worker(task_id: int, *, mock_llm: bool = False) -> int:
     with _LOCK:
         _CHILD_PROCS[proc.pid] = proc
 
-    # Record pid + output_dir in the task row
-    if dbmod.SessionLocal is None:
-        dbmod.init_engine()
-        dbmod.Base.metadata.create_all(dbmod.engine)
+    # Patch in the real pid. Narrow update — does not touch status, so if
+    # the child has already reached a terminal state, we don't revert it.
     with dbmod.SessionLocal() as s:
-        crud.mark_task_started(s, task_id,
-                               worker_pid=proc.pid,
-                               output_dir=str(out_dir))
+        crud.set_task_worker_pid(s, task_id, proc.pid)
     return proc.pid
 
 
@@ -114,7 +125,28 @@ def recover_orphaned_running() -> int:
     count = 0
     with dbmod.SessionLocal() as s:
         rows = list(s.query(models.Task).filter_by(status="running").all())
+
+    skip_seconds = settings.recover_skip_recent_starting_seconds
+    now = datetime.now(timezone.utc)
+
     for row in rows:
+        # Skip rows that are still in the spawn_worker bootstrap window:
+        # status=running was just written, but set_task_worker_pid hasn't
+        # patched in the real pid yet. Without this guard we'd false-orphan
+        # healthy tasks the instant they start. Rows stuck past the window
+        # (worker never finished bootstrapping, or crashed before
+        # set_task_worker_pid ran) fall through and get marked failed.
+        if (row.worker_pid is None) or (row.worker_pid <= 0):
+            if row.started_at:
+                try:
+                    started = datetime.fromisoformat(row.started_at)
+                except ValueError:
+                    started = None
+                if started is not None:
+                    if started.tzinfo is None:
+                        started = started.replace(tzinfo=timezone.utc)
+                    if (now - started).total_seconds() < skip_seconds:
+                        continue
         if is_pid_alive(row.worker_pid):
             continue
         with dbmod.SessionLocal() as s:

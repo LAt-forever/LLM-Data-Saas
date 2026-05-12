@@ -257,12 +257,32 @@ def mark_task_started(db: Session, task_id: int, worker_pid: int,
     obj = db.get(models.Task, task_id)
     if obj is None:
         raise ValueError(f"task {task_id} not found")
+    # Race protection: a very fast child may have already written a terminal
+    # status before the parent's mark_task_started landed. Don't overwrite;
+    # leave the row untouched and record a warning event so the flip is visible.
+    if obj.status in ("succeeded", "failed", "aborted"):
+        add_task_event(
+            db, task_id, "warning",
+            f"mark_task_started skipped: task already {obj.status}")
+        return obj
     obj.worker_pid = worker_pid
     obj.output_dir = output_dir
     obj.status = "running"
     obj.started_at = _now()
     db.commit(); db.refresh(obj)
     return obj
+
+
+def set_task_worker_pid(db: Session, task_id: int, pid: int) -> None:
+    """Narrow update: write worker_pid only. Does not change status,
+    output_dir, started_at, or emit events. Used by the supervisor after
+    Popen returns to patch in the real pid without racing against the
+    child's own status writes."""
+    obj = db.get(models.Task, task_id)
+    if obj is None:
+        raise ValueError(f"task {task_id} not found")
+    obj.worker_pid = pid
+    db.commit()
 
 
 def update_task_progress(db: Session, task_id: int, current: int) -> models.Task:

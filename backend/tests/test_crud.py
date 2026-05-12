@@ -92,3 +92,47 @@ def test_wordlist_has_running_refs_returns_false_when_no_category_refs(db_sessio
     standalone = crud.create_wordlist(
         db_session, WordListCreate(name="orphan", kind="other", items=["z"]))
     assert crud.wordlist_has_running_refs(db_session, standalone.id) is False
+
+
+def test_set_task_worker_pid_updates_only_pid(db_session):
+    api, _, _, _, cat = _seed_basics(db_session)
+    t = crud.create_task_snapshot(db_session, cat.id, api.id, 10, 5, 1, 100, None, None)
+    # Seed via mark_task_started with pid=0 (matches new spawn_worker flow).
+    crud.mark_task_started(db_session, t.id, worker_pid=0,
+                           output_dir="data/task-x")
+    pre_status = t.status
+    pre_output_dir = t.output_dir
+    pre_started_at = t.started_at
+
+    crud.set_task_worker_pid(db_session, t.id, 42)
+
+    db_session.refresh(t)
+    assert t.worker_pid == 42
+    assert t.status == pre_status
+    assert t.output_dir == pre_output_dir
+    assert t.started_at == pre_started_at
+
+
+def test_mark_task_started_noops_when_already_terminal(db_session):
+    api, _, _, _, cat = _seed_basics(db_session)
+    t = crud.create_task_snapshot(db_session, cat.id, api.id, 10, 5, 1, 100, None, None)
+    # Fast child scenario: task reached a terminal status before parent's
+    # late mark_task_started landed.
+    crud.mark_task_finished(db_session, t.id, "succeeded")
+    pre_finished_at = t.finished_at
+    pre_output_dir = t.output_dir
+    pre_worker_pid = t.worker_pid
+
+    crud.mark_task_started(db_session, t.id, worker_pid=123,
+                           output_dir="/tmp/x")
+
+    db_session.refresh(t)
+    assert t.status == "succeeded"
+    assert t.worker_pid == pre_worker_pid
+    assert t.output_dir == pre_output_dir
+    assert t.finished_at == pre_finished_at
+
+    evs = crud.recent_events(db_session, t.id, limit=50)
+    warn_msgs = [e.message for e in evs if e.type == "warning"]
+    assert any(("skipped" in m or "terminal" in m) for m in warn_msgs), (
+        f"expected a warning event about skipped/terminal, got: {warn_msgs}")

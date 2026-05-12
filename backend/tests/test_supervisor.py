@@ -3,6 +3,7 @@ import os
 import signal
 import sys
 import time
+from datetime import datetime, timedelta, timezone
 
 from service.schemas import (
     ApiConfigCreate, WordListCreate, PromptTemplateCreate, CategoryCreate
@@ -108,3 +109,72 @@ def test_terminate_worker_sends_signals(tmp_path, monkeypatch):
     finally:
         if proc.poll() is None:
             proc.kill()
+
+
+def test_terminate_worker_falls_back_to_sigkill(tmp_path, monkeypatch):
+    """Child ignores SIGTERM → terminate_worker must escalate to SIGKILL."""
+    _fresh_env(tmp_path, monkeypatch)
+    from service import supervisor
+
+    import subprocess
+    script = (
+        "import signal, time; "
+        "signal.signal(signal.SIGTERM, signal.SIG_IGN); "
+        "time.sleep(60)"
+    )
+    proc = subprocess.Popen([sys.executable, "-c", script])
+    try:
+        # Give the child a moment to install the SIGTERM handler.
+        time.sleep(0.2)
+        supervisor.terminate_worker(proc.pid, grace_seconds=1)
+        proc.wait(timeout=5)
+        # POSIX signed returncode: negative means killed by signal N.
+        assert proc.returncode == -signal.SIGKILL
+    finally:
+        if proc.poll() is None:
+            proc.kill()
+
+
+def test_recover_orphans_skips_recent_pidless_task(tmp_path, monkeypatch):
+    """Task in the spawn_worker bootstrap window (status=running, pid=0,
+    started_at=just-now) must NOT be false-orphaned."""
+    dbmod = _fresh_env(tmp_path, monkeypatch)
+    task_id = _seed_pending_task(dbmod)
+    from service import crud, models, supervisor
+
+    with dbmod.SessionLocal() as s:
+        crud.mark_task_started(s, task_id,
+                               worker_pid=0,
+                               output_dir=str(tmp_path / "x"))
+
+    n = supervisor.recover_orphaned_running()
+    assert n == 0
+
+    with dbmod.SessionLocal() as s:
+        t = s.get(models.Task, task_id)
+        assert t.status == "running"
+
+
+def test_recover_orphans_marks_stuck_pidless_task_failed(tmp_path, monkeypatch):
+    """Task stuck with pid=0 past the bootstrap window must still be failed."""
+    dbmod = _fresh_env(tmp_path, monkeypatch)
+    task_id = _seed_pending_task(dbmod)
+    from service import crud, models, supervisor
+
+    with dbmod.SessionLocal() as s:
+        crud.mark_task_started(s, task_id,
+                               worker_pid=0,
+                               output_dir=str(tmp_path / "x"))
+        # Backdate started_at past the skip window.
+        old_iso = (datetime.now(timezone.utc) - timedelta(seconds=60)
+                   ).isoformat(timespec="seconds")
+        s.query(models.Task).filter(models.Task.id == task_id).update(
+            {"started_at": old_iso})
+        s.commit()
+
+    n = supervisor.recover_orphaned_running()
+    assert n == 1
+
+    with dbmod.SessionLocal() as s:
+        t = s.get(models.Task, task_id)
+        assert t.status == "failed"
