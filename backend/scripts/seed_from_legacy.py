@@ -33,7 +33,7 @@ def _module_top_level_literals(path: Path) -> dict:
     """Return a dict of top-level NAME = literal assignments. Skip any
     statement that contains non-literal expressions (calls, attribute access,
     etc.) -- we only want simple constants and list/dict of literals."""
-    src = path.read_text(encoding="utf-8")
+    src = path.read_text(encoding="utf-8-sig")
     tree = ast.parse(src, filename=str(path))
     out: dict = {}
     for node in tree.body:
@@ -48,6 +48,28 @@ def _module_top_level_literals(path: Path) -> dict:
             continue
         out[name] = value
     return out
+
+
+def _extract_call_kwargs(path: Path, names: set[str]) -> dict:
+    """Walk the module AST. For every Call node, collect keyword args whose
+    name is in `names` and whose value is a string literal. Return the FIRST
+    such value per name. Uses utf-8-sig so BOM-prefixed files parse cleanly."""
+    src = path.read_text(encoding="utf-8-sig")
+    try:
+        tree = ast.parse(src, filename=str(path))
+    except SyntaxError:
+        return {}
+    result: dict = {}
+    for n in ast.walk(tree):
+        if not isinstance(n, ast.Call):
+            continue
+        for kw in n.keywords:
+            if (kw.arg in names
+                    and isinstance(kw.value, ast.Constant)
+                    and isinstance(kw.value.value, str)
+                    and kw.arg not in result):
+                result[kw.arg] = kw.value.value
+    return result
 
 
 def _ensure_api_config(db, *, name, base_url, api_key, model_name, api_type) -> int:
@@ -128,13 +150,16 @@ def _seed_black_file(db, path: Path, result: SeedResult) -> None:
 
 def _seed_gray_white_file(db, path: Path, sample_type: str, result: SeedResult) -> None:
     consts = _module_top_level_literals(path)
+    call_kwargs = _extract_call_kwargs(path, {"base_url"})
     scenarios = (consts.get("GRAY_SCENARIOS")
                  or consts.get("WHITE_SCENARIOS")
                  or consts.get("SCENARIOS"))
     tones = consts.get("TONES")
     templates = consts.get("META_TEMPLATES")
     api_key = consts.get("PROXY_API_KEY") or consts.get("DEEPSEEK_API_KEY")
-    base_url = (consts.get("base_url") or consts.get("BASE_URL")
+    base_url = (consts.get("base_url")
+                or consts.get("BASE_URL")
+                or call_kwargs.get("base_url")
                 or "https://api.deepseek.com")
     model_name = consts.get("MODEL_NAME")
     target_count = consts.get("TARGET_COUNT", 0)

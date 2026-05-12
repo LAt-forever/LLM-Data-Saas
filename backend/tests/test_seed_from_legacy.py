@@ -116,3 +116,66 @@ def test_seed_skips_unparseable_file(tmp_path, monkeypatch):
     result = seed(legacy_root=legacy_root)
     assert result.categories == 1
     assert any("run_bad.py" in s for s in result.skipped)
+
+
+def test_seed_handles_bom_prefixed_file(tmp_path, monkeypatch):
+    """Real legacy .py files have UTF-8 BOM at start. The script must not
+    choke on it (encoding='utf-8-sig' strips the BOM)."""
+    _fresh_imports(monkeypatch, tmp_path)
+    import service.config  # noqa: F401
+    import service.db as dbmod
+    import service.models  # noqa: F401
+    dbmod.init_engine()
+    dbmod.Base.metadata.create_all(dbmod.engine)
+
+    legacy_root = tmp_path / "llm-data-create"
+    (legacy_root / "black_data").mkdir(parents=True)
+    # Prefix with UTF-8 BOM (U+FEFF)
+    (legacy_root / "black_data" / "run_bom.py").write_text(
+        "﻿" + _SAMPLE_BLACK, encoding="utf-8")
+
+    from scripts.seed_from_legacy import seed
+    result = seed(legacy_root=legacy_root)
+    assert result.categories == 1, f"BOM-prefixed file was skipped: {result.skipped}"
+    assert result.skipped == []
+
+
+_SAMPLE_GRAY_WITH_OPENAI_KWARG = '''
+from openai import OpenAI
+
+GRAY_SCENARIOS = ["g1", "g2"]
+TONES = ["t1"]
+META_TEMPLATES = ["x {scenario} {tone} {batch_size}"]
+PROXY_API_KEY = "test-proxy-key"
+MODEL_NAME = "deepseek-chat"
+TARGET_COUNT = 100
+
+# base_url is here as a call kwarg, NOT a top-level assignment.
+client = OpenAI(api_key=PROXY_API_KEY, base_url="https://sun.uguard.cloud/v1")
+'''
+
+
+def test_seed_extracts_base_url_from_openai_call_kwarg(tmp_path, monkeypatch):
+    _fresh_imports(monkeypatch, tmp_path)
+    import service.config  # noqa: F401
+    import service.db as dbmod
+    import service.models  # noqa: F401
+    dbmod.init_engine()
+    dbmod.Base.metadata.create_all(dbmod.engine)
+
+    legacy_root = tmp_path / "llm-data-create"
+    (legacy_root / "gray_data" / "code").mkdir(parents=True)
+    (legacy_root / "gray_data" / "code" / "generate_gray_deepseek.py").write_text(
+        _SAMPLE_GRAY_WITH_OPENAI_KWARG, encoding="utf-8")
+
+    from scripts.seed_from_legacy import seed
+    result = seed(legacy_root=legacy_root)
+    assert result.api_configs == 1
+    assert result.skipped == []
+
+    from service import models
+    with dbmod.SessionLocal() as s:
+        apis = s.query(models.ApiConfig).all()
+        assert len(apis) == 1
+        # Critical: base_url must be the call kwarg value, NOT the hardcoded fallback.
+        assert apis[0].base_url == "https://sun.uguard.cloud/v1"
