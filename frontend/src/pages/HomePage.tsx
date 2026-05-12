@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Button, Space, Select, Card } from 'antd';
 import { useQuery } from '@tanstack/react-query';
 import { listTasks } from '../api/tasks';
+import type { TaskOut } from '../api/types';
 import { TaskList } from '../components/TaskList';
 import { TaskCreateModal } from '../components/TaskCreateModal';
 
@@ -13,8 +14,10 @@ export function HomePage() {
   const { data: tasks, isLoading, refetch } = useQuery({
     queryKey: ['tasks', statusFilter, page],
     queryFn: () => listTasks({ status: statusFilter, page, size: 50 }),
-    refetchInterval: (data) =>
-      data?.some((t) => t.status === 'running') ? 3000 : false,
+    refetchInterval: (query) =>
+      (query.state.data as TaskOut[] | undefined)?.some((t) => t.status === 'running')
+        ? 3000
+        : false,
   });
 
   return (
