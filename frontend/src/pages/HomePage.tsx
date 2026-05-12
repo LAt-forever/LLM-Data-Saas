@@ -13,6 +13,8 @@ export function HomePage() {
   const { data: tasks, isLoading, refetch } = useQuery({
     queryKey: ['tasks', statusFilter, page],
     queryFn: () => listTasks({ status: statusFilter, page, size: 50 }),
+    refetchInterval: (data) =>
+      data?.some((t) => t.status === 'running') ? 3000 : false,
   });
 
   return (

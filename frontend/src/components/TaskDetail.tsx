@@ -1,4 +1,4 @@
-import { Card, Button, Space, Popconfirm } from 'antd';
+import { Card, Button, Space, Popconfirm, message } from 'antd';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { abortTask, deleteTask, downloadTask } from '../api/tasks';
 import type { TaskDetail as TaskDetailType } from '../api/types';
@@ -21,6 +21,11 @@ export function TaskDetail({ task }: Props) {
     mutationFn: () => abortTask(task.id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['task', task.id] });
+      message.success('任务已中止');
+    },
+    onError: (err: Error) => {
+      message.error(err.message);
+      queryClient.invalidateQueries({ queryKey: ['task', task.id] });
     },
   });
 
@@ -29,6 +34,10 @@ export function TaskDetail({ task }: Props) {
     onSuccess: () => {
       navigate('/');
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      message.success('任务已删除');
+    },
+    onError: (err: Error) => {
+      message.error(err.message);
     },
   });
 
@@ -55,7 +64,7 @@ export function TaskDetail({ task }: Props) {
                 </Button>
               </Popconfirm>
             )}
-            {isTerminal && (
+            {task.status === 'succeeded' && (
               <Button onClick={() => downloadTask(task.id)}>
                 下载结果
               </Button>

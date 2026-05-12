@@ -23,6 +23,8 @@ export function useTaskStream(taskId: number | undefined) {
         lastIdRef.current = parseInt(e.lastEventId, 10);
       }
       queryClient.invalidateQueries({ queryKey: ['task', taskId] });
+      queryClient.invalidateQueries({ queryKey: ['preview', taskId] });
+      queryClient.invalidateQueries({ queryKey: ['log', taskId] });
     });
 
     es.addEventListener('finished', (e: MessageEvent) => {
@@ -31,6 +33,8 @@ export function useTaskStream(taskId: number | undefined) {
         lastIdRef.current = parseInt(e.lastEventId, 10);
       }
       queryClient.invalidateQueries({ queryKey: ['task', taskId] });
+      queryClient.invalidateQueries({ queryKey: ['preview', taskId] });
+      queryClient.invalidateQueries({ queryKey: ['log', taskId] });
       closedByUs = true;
       es.close();
       setSseState(taskId, 'closed');

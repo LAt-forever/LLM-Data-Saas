@@ -15,7 +15,8 @@ export function TaskDetailPage() {
     enabled: !isNaN(taskId),
   });
 
-  useTaskStream(!isNaN(taskId) ? taskId : undefined);
+  const shouldStream = !isNaN(taskId) && !!task && !['succeeded', 'failed', 'aborted'].includes(task.status);
+  useTaskStream(shouldStream ? taskId : undefined);
 
   if (isNaN(taskId)) {
     return <div>无效的任务 ID</div>;
