@@ -12,6 +12,7 @@ from service.routers import prompt_templates as prompt_templates_router
 from service.routers import categories as categories_router
 from service.routers import meta as meta_router
 from service.routers import tasks as tasks_router
+from service.routers import tasks_stream as tasks_stream_router
 
 
 @asynccontextmanager
@@ -57,3 +58,4 @@ app.include_router(prompt_templates_router.router)
 app.include_router(categories_router.router)
 app.include_router(meta_router.router)
 app.include_router(tasks_router.router)
+app.include_router(tasks_stream_router.router)
