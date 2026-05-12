@@ -59,3 +59,7 @@ app.include_router(categories_router.router)
 app.include_router(meta_router.router)
 app.include_router(tasks_router.router)
 app.include_router(tasks_stream_router.router)
+
+from service.static import mount_static  # noqa: E402
+
+mount_static(app)
