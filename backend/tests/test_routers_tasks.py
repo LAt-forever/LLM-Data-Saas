@@ -141,3 +141,38 @@ def test_abort_running_task(client, monkeypatch):
         if s == "aborted": break
         time.sleep(0.3)
     assert client.get(f"/api/tasks/{tid}").json()["status"] == "aborted"
+
+
+def test_create_task_marks_failed_when_spawn_raises(client, monkeypatch):
+    """If supervisor.spawn_worker raises (e.g., Popen fails), the task
+    row must end up terminal-failed with an error_msg + error event —
+    NOT left stuck at pending."""
+    from service.routers import tasks as tasks_router
+
+    def _boom(tid, mock_llm=False):
+        raise OSError("simulated popen failure")
+
+    monkeypatch.setattr(tasks_router.supervisor, "spawn_worker", _boom)
+
+    cat, api = _seed_full(client)
+    r = client.post("/api/tasks", json={
+        "category_id": cat["id"], "api_config_id": api["id"],
+        "target_count": 5, "batch_size": 2, "max_workers": 1,
+        "max_per_file": 50,
+    })
+    assert r.status_code == 500, r.text
+    assert "failed to start worker" in r.text.lower() or "popen" in r.text.lower()
+
+    # Task row exists and is terminally failed — not stuck pending
+    failed = client.get("/api/tasks?status=failed").json()
+    assert len(failed) >= 1
+    # find the one with the error message matching our OSError
+    matches = [t for t in failed
+               if "popen" in (t.get("error_msg") or "").lower()
+               or "spawn failed" in (t.get("error_msg") or "").lower()]
+    assert matches, f"no failed task matches our spawn failure; got: {failed}"
+    tid = matches[0]["id"]
+
+    detail = client.get(f"/api/tasks/{tid}").json()
+    assert detail["status"] == "failed"
+    assert any(e["type"] == "error" for e in detail["recent_events"])

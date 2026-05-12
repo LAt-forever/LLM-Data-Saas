@@ -97,7 +97,15 @@ def create(payload: TaskCreate, db: Session = Depends(get_db)) -> TaskOut:
             new_dir = settings.task_dir(t.id)
             worker_io.copy_resume_csvs(Path(old.output_dir), new_dir)
 
-    supervisor.spawn_worker(t.id)
+    try:
+        supervisor.spawn_worker(t.id)
+    except Exception as e:
+        err = f"{type(e).__name__}: {e}"[:300]
+        crud.mark_task_finished(db, t.id, "failed",
+                                error_msg=f"spawn failed: {err}")
+        crud.add_task_event(db, t.id, "error",
+                            f"spawn failed: {err}"[:200])
+        raise HTTPException(500, f"failed to start worker: {err}")
     db.refresh(t)
     return _row_to_out(t)
 
