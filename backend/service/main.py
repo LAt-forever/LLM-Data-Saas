@@ -7,6 +7,7 @@ from service.config import settings
 from service.routers import api_configs as api_configs_router
 from service.routers import wordlists as wordlists_router
 from service.routers import prompt_templates as prompt_templates_router
+from service.routers import categories as categories_router
 
 
 @asynccontextmanager
@@ -28,3 +29,4 @@ def healthz() -> dict[str, str]:
 app.include_router(api_configs_router.router)
 app.include_router(wordlists_router.router)
 app.include_router(prompt_templates_router.router)
+app.include_router(categories_router.router)
