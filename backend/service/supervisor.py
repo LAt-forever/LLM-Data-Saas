@@ -3,8 +3,8 @@ import os
 import signal
 import subprocess
 import sys
+import threading
 import time
-from pathlib import Path
 
 from service import crud, db as dbmod, models
 from service.config import settings
@@ -13,6 +13,7 @@ from service.config import settings
 # Track Popen handles for workers we spawn, so is_pid_alive can detect
 # zombie children (POSIX: os.kill(pid, 0) returns success for zombies).
 # Without this, a finished worker subprocess is "alive" forever in our view.
+_LOCK = threading.Lock()
 _CHILD_PROCS: dict[int, subprocess.Popen] = {}
 
 
@@ -20,14 +21,16 @@ def _reap_known_child(pid: int) -> bool | None:
     """If pid is one of our tracked children, return True if still running,
     False if it exited (and remove it from the registry). Returns None if
     pid is not a tracked child."""
-    proc = _CHILD_PROCS.get(pid)
+    with _LOCK:
+        proc = _CHILD_PROCS.get(pid)
     if proc is None:
         return None
     rc = proc.poll()
     if rc is None:
         return True
     # Reaped — drop it.
-    _CHILD_PROCS.pop(pid, None)
+    with _LOCK:
+        _CHILD_PROCS.pop(pid, None)
     return False
 
 
@@ -42,16 +45,17 @@ def spawn_worker(task_id: int, *, mock_llm: bool = False) -> int:
 
     log_path = settings.task_log(task_id)
     log_path.parent.mkdir(parents=True, exist_ok=True)
-    log_fh = open(log_path, "a", encoding="utf-8")
-    proc = subprocess.Popen(
-        cmd,
-        stdout=log_fh, stderr=subprocess.STDOUT,
-        env={**os.environ,
-             "DATA_DIR": str(settings.data_dir),
-             "LOG_DIR": str(settings.log_dir),
-             "DB_PATH": str(settings.db_path)},
-    )
-    _CHILD_PROCS[proc.pid] = proc
+    with open(log_path, "a", encoding="utf-8") as log_fh:
+        proc = subprocess.Popen(
+            cmd,
+            stdout=log_fh, stderr=subprocess.STDOUT,
+            env={**os.environ,
+                 "DATA_DIR": str(settings.data_dir),
+                 "LOG_DIR": str(settings.log_dir),
+                 "DB_PATH": str(settings.db_path)},
+        )
+    with _LOCK:
+        _CHILD_PROCS[proc.pid] = proc
 
     # Record pid + output_dir in the task row
     if dbmod.SessionLocal is None:
