@@ -62,3 +62,48 @@ def reveal(id_: int, db: Session = Depends(get_db)) -> Response:
         {"id": obj.id, "api_key": obj.api_key},
         headers={"Cache-Control": "no-store"},
     )
+
+
+import time
+
+import requests
+from openai import OpenAI
+
+
+def _ping_llm(base_url: str, api_key: str, model_name: str, api_type: str) -> dict:
+    """Send a minimal request to verify the endpoint is reachable.
+    Returns {ok, latency_ms, sample_text} on success or {ok: False, error}.
+    Kept as a module-level function so tests can monkeypatch it."""
+    t0 = time.monotonic()
+    try:
+        if api_type == "openai":
+            client = OpenAI(api_key=api_key, base_url=base_url, timeout=15)
+            rsp = client.chat.completions.create(
+                model=model_name,
+                messages=[{"role": "user", "content": "ping"}],
+                max_tokens=4,
+            )
+            sample = (rsp.choices[0].message.content or "")[:50]
+        else:  # raw
+            rsp = requests.post(
+                f"{base_url.rstrip('/')}/v1/chat/completions",
+                headers={"Authorization": f"Bearer {api_key}",
+                         "Content-Type": "application/json"},
+                json={"model": model_name, "stream": False,
+                      "messages": [{"role": "user", "content": "ping"}]},
+                timeout=15,
+            )
+            rsp.raise_for_status()
+            sample = (rsp.json()["choices"][0]["message"]["content"] or "")[:50]
+        latency_ms = int((time.monotonic() - t0) * 1000)
+        return {"ok": True, "latency_ms": latency_ms, "sample_text": sample}
+    except Exception as e:
+        return {"ok": False, "error": str(e)[:300]}
+
+
+@router.post("/{id_}/test")
+def test_config(id_: int, db: Session = Depends(get_db)) -> dict:
+    obj = crud.get_api_config(db, id_)
+    if obj is None:
+        raise HTTPException(404, "not found")
+    return _ping_llm(obj.base_url, obj.api_key, obj.model_name, obj.type)
