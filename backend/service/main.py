@@ -9,6 +9,7 @@ from service.routers import wordlists as wordlists_router
 from service.routers import prompt_templates as prompt_templates_router
 from service.routers import categories as categories_router
 from service.routers import meta as meta_router
+from service.routers import tasks as tasks_router
 
 
 @asynccontextmanager
@@ -32,3 +33,4 @@ app.include_router(wordlists_router.router)
 app.include_router(prompt_templates_router.router)
 app.include_router(categories_router.router)
 app.include_router(meta_router.router)
+app.include_router(tasks_router.router)
