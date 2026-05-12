@@ -19,7 +19,7 @@ export function TaskEventTimeline({ events }: { events: TaskEventOut[] }) {
       items={events.map((e) => ({
         children: (
           <div>
-            <Tag color={TYPE_COLORS[e.type] || 'default'} size="small">
+            <Tag color={TYPE_COLORS[e.type] || 'default'}>
               {e.type}
             </Tag>
             <span style={{ marginLeft: 8, color: '#888', fontSize: 12 }}>

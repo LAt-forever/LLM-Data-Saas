@@ -25,7 +25,7 @@ interface Props {
   onRefresh: () => void;
 }
 
-export function TaskList({ tasks, loading, onRefresh }: Props) {
+export function TaskList({ tasks, loading }: Props) {
   const columns: ColumnsType<TaskOut> = [
     {
       title: 'ID',

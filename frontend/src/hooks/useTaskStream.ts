@@ -18,7 +18,7 @@ export function useTaskStream(taskId: number | undefined) {
     });
 
     es.addEventListener('event', (e: MessageEvent) => {
-      const data = JSON.parse(e.data);
+      void JSON.parse(e.data);
       if (e.lastEventId) {
         lastIdRef.current = parseInt(e.lastEventId, 10);
       }
@@ -26,7 +26,7 @@ export function useTaskStream(taskId: number | undefined) {
     });
 
     es.addEventListener('finished', (e: MessageEvent) => {
-      const data = JSON.parse(e.data);
+      void JSON.parse(e.data);
       if (e.lastEventId) {
         lastIdRef.current = parseInt(e.lastEventId, 10);
       }
@@ -44,6 +44,7 @@ export function useTaskStream(taskId: number | undefined) {
 
     return () => {
       closedByUs = true;
+      void closedByUs;
       es.close();
     };
   }, [taskId, queryClient, setSseState]);
