@@ -46,3 +46,39 @@ def test_all_tables_created(tmp_path):
 
     assert s.query(Task).count() == 1
     assert s.query(TaskEvent).count() == 1
+
+
+def test_wordlist_name_is_unique(tmp_path):
+    from sqlalchemy.exc import IntegrityError
+    s = make_session(tmp_path)
+    s.add(WordList(name="dup", kind="scenario", items_json="[]"))
+    s.commit()
+    s.add(WordList(name="dup", kind="tone", items_json="[]"))
+    import pytest
+    with pytest.raises(IntegrityError):
+        s.commit()
+
+
+def test_category_unique_per_sample_type_and_name(tmp_path):
+    from sqlalchemy.exc import IntegrityError
+    s = make_session(tmp_path)
+    wl = WordList(name="w", kind="scenario", items_json="[]")
+    pt = PromptTemplate(name="p", body="hi", variables_json="[]")
+    s.add_all([wl, pt]); s.flush()
+
+    def mk(sample_type, name):
+        return Category(
+            sample_type=sample_type, name=name, description="",
+            prompt_template_id=pt.id, scenario_list_id=wl.id,
+            tone_list_id=wl.id, default_target_count=0,
+        )
+
+    # Same name across different sample_types is allowed
+    s.add_all([mk("black", "X"), mk("gray", "X")])
+    s.commit()
+
+    # Same (sample_type, name) collides
+    s.add(mk("black", "X"))
+    import pytest
+    with pytest.raises(IntegrityError):
+        s.commit()

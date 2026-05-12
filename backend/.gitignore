@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.uv/
+uv.lock
+
+# Pytest / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Runtime artifacts
+data/
+logs/
+app.db
+app.db-journal
+app.db-wal
+app.db-shm

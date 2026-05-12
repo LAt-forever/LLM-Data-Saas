@@ -1,5 +1,5 @@
 from typing import Literal
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field
 
 
 ApiType = Literal["openai", "raw"]
@@ -44,7 +44,7 @@ class WordListCreate(BaseModel):
 class WordListUpdate(BaseModel):
     name: str | None = None
     kind: WordListKind | None = None
-    items: list[str] | None = None
+    items: list[str] | None = Field(default=None, min_length=1)
 
 
 class WordListOut(BaseModel):
