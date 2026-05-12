@@ -1,5 +1,5 @@
 from sqlalchemy import (
-    Integer, String, Text, ForeignKey, Index
+    Integer, String, Text, ForeignKey, Index, UniqueConstraint
 )
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -21,7 +21,7 @@ class ApiConfig(Base):
 class WordList(Base):
     __tablename__ = "wordlist"
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    name: Mapped[str] = mapped_column(String(200))
+    name: Mapped[str] = mapped_column(String(200), unique=True)
     kind: Mapped[str] = mapped_column(String(40))  # scenario|tone|other
     items_json: Mapped[str] = mapped_column(Text)
     created_at: Mapped[str] = mapped_column(String(40), default="")
@@ -40,6 +40,9 @@ class PromptTemplate(Base):
 
 class Category(Base):
     __tablename__ = "category"
+    __table_args__ = (
+        UniqueConstraint("sample_type", "name", name="uq_category_sample_type_name"),
+    )
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     sample_type: Mapped[str] = mapped_column(String(20))  # black|gray|white
     name: Mapped[str] = mapped_column(String(300))

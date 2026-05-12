@@ -36,3 +36,12 @@ def test_task_create_param_bounds():
         TaskCreate(**{**base, "max_workers": 999})
     with pytest.raises(ValidationError):
         TaskCreate(**{**base, "batch_size": 9999})
+
+
+def test_wordlist_update_rejects_empty_items():
+    from service.schemas import WordListUpdate
+    WordListUpdate(items=["a"])      # OK
+    WordListUpdate(items=None)       # OK (means: don't update items)
+    WordListUpdate()                 # OK (no fields set)
+    with pytest.raises(ValidationError):
+        WordListUpdate(items=[])     # explicit empty list rejected

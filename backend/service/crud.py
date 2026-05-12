@@ -1,6 +1,5 @@
 import json
 from datetime import datetime, timezone
-from typing import Iterable
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -251,6 +250,53 @@ def list_tasks(db: Session, *, status: str | None = None,
 
 def get_task(db: Session, id_: int) -> models.Task | None:
     return db.get(models.Task, id_)
+
+
+def mark_task_started(db: Session, task_id: int, worker_pid: int,
+                      output_dir: str) -> models.Task:
+    obj = db.get(models.Task, task_id)
+    if obj is None:
+        raise ValueError(f"task {task_id} not found")
+    obj.worker_pid = worker_pid
+    obj.output_dir = output_dir
+    obj.status = "running"
+    obj.started_at = _now()
+    db.commit(); db.refresh(obj)
+    return obj
+
+
+def update_task_progress(db: Session, task_id: int, current: int) -> models.Task:
+    obj = db.get(models.Task, task_id)
+    if obj is None:
+        raise ValueError(f"task {task_id} not found")
+    obj.progress_current = current
+    db.commit(); db.refresh(obj)
+    return obj
+
+
+def set_task_status(db: Session, task_id: int, status: str,
+                    error_msg: str | None = None) -> models.Task:
+    obj = db.get(models.Task, task_id)
+    if obj is None:
+        raise ValueError(f"task {task_id} not found")
+    obj.status = status
+    if error_msg is not None:
+        obj.error_msg = error_msg
+    db.commit(); db.refresh(obj)
+    return obj
+
+
+def mark_task_finished(db: Session, task_id: int, status: str,
+                       error_msg: str | None = None) -> models.Task:
+    obj = db.get(models.Task, task_id)
+    if obj is None:
+        raise ValueError(f"task {task_id} not found")
+    obj.status = status
+    obj.finished_at = _now()
+    if error_msg is not None:
+        obj.error_msg = error_msg
+    db.commit(); db.refresh(obj)
+    return obj
 
 
 def add_task_event(db: Session, task_id: int, type_: str, message: str) -> models.TaskEvent:

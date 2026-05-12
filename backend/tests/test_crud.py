@@ -50,3 +50,45 @@ def test_list_tasks_filters_by_status(db_session):
     b.status = "succeeded"; db_session.commit()
     only_running = crud.list_tasks(db_session, status="running")
     assert [t.id for t in only_running] == [a.id]
+
+
+def test_mark_task_started_sets_pid_dir_and_status(db_session):
+    api, _, _, _, cat = _seed_basics(db_session)
+    t = crud.create_task_snapshot(db_session, cat.id, api.id, 10, 5, 1, 100, None, None)
+    out = crud.mark_task_started(db_session, t.id, worker_pid=12345,
+                                 output_dir="data/task-1")
+    assert out.status == "running"
+    assert out.worker_pid == 12345
+    assert out.output_dir == "data/task-1"
+    assert out.started_at is not None
+
+
+def test_update_task_progress(db_session):
+    api, _, _, _, cat = _seed_basics(db_session)
+    t = crud.create_task_snapshot(db_session, cat.id, api.id, 100, 5, 1, 100, None, None)
+    out = crud.update_task_progress(db_session, t.id, current=42)
+    assert out.progress_current == 42
+
+
+def test_set_and_finish_task_status(db_session):
+    api, _, _, _, cat = _seed_basics(db_session)
+    t = crud.create_task_snapshot(db_session, cat.id, api.id, 10, 5, 1, 100, None, None)
+    out = crud.set_task_status(db_session, t.id, "aborted")
+    assert out.status == "aborted"
+    out = crud.mark_task_finished(db_session, t.id, "failed", error_msg="boom")
+    assert out.status == "failed"
+    assert out.finished_at is not None
+    assert out.error_msg == "boom"
+
+
+def test_wordlist_has_running_refs_via_tone_link(db_session):
+    api, s_wl, t_wl, pt, cat = _seed_basics(db_session)
+    task = crud.create_task_snapshot(db_session, cat.id, api.id, 10, 5, 1, 100, None, None)
+    task.status = "running"; db_session.commit()
+    assert crud.wordlist_has_running_refs(db_session, t_wl.id) is True
+
+
+def test_wordlist_has_running_refs_returns_false_when_no_category_refs(db_session):
+    standalone = crud.create_wordlist(
+        db_session, WordListCreate(name="orphan", kind="other", items=["z"]))
+    assert crud.wordlist_has_running_refs(db_session, standalone.id) is False
