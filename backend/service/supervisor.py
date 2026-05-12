@@ -1,4 +1,5 @@
 # backend/service/supervisor.py
+import asyncio
 import os
 import signal
 import subprocess
@@ -169,3 +170,25 @@ def recover_orphaned_running() -> int:
                                 f"worker pid {row.worker_pid} no longer alive")
         count += 1
     return count
+
+
+async def poll_loop(*, interval: float, stop: asyncio.Event) -> None:
+    """Periodically scan for orphaned running tasks until `stop` is set.
+
+    Runs as a FastAPI lifespan background task. The loop swallows
+    exceptions from `recover_orphaned_running` (printed to stdout for
+    observability) so a transient failure doesn't terminate the loop.
+    """
+    while not stop.is_set():
+        try:
+            n = recover_orphaned_running()
+            if n > 0:
+                print(f"[supervisor] periodic recovery swept {n} orphan(s)",
+                      flush=True)
+        except Exception as e:
+            print(f"[supervisor] periodic recovery raised: "
+                  f"{type(e).__name__}: {e}", flush=True)
+        try:
+            await asyncio.wait_for(stop.wait(), timeout=interval)
+        except asyncio.TimeoutError:
+            continue

@@ -1,5 +1,7 @@
 from contextlib import asynccontextmanager
 
+import asyncio
+
 from fastapi import FastAPI
 
 from service import db as dbmod, models  # noqa: F401
@@ -19,8 +21,26 @@ async def lifespan(app: FastAPI):
     dbmod.Base.metadata.create_all(dbmod.engine)
     # Late import — supervisor depends on engine being initialized.
     from service import supervisor
-    supervisor.recover_orphaned_running()
-    yield
+    try:
+        n = supervisor.recover_orphaned_running()
+        if n > 0:
+            print(f"[supervisor] startup recovery swept {n} orphan(s)",
+                  flush=True)
+    except Exception as e:
+        # Loud-degrade: log and continue rather than fail app startup.
+        print(f"[supervisor] startup recovery raised: "
+              f"{type(e).__name__}: {e}", flush=True)
+
+    # Periodic orphan sweep — long-lived background task, stopped on shutdown.
+    stop = asyncio.Event()
+    poll_task = asyncio.create_task(
+        supervisor.poll_loop(
+            interval=settings.supervisor_poll_seconds, stop=stop))
+    try:
+        yield
+    finally:
+        stop.set()
+        await poll_task
 
 
 app = FastAPI(title="LLM Data Service", version="0.1.0", lifespan=lifespan)

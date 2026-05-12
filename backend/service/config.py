@@ -38,6 +38,8 @@ def _load() -> Settings:
         data_dir=Path(os.environ.get("DATA_DIR", "data")).resolve(),
         log_dir=Path(os.environ.get("LOG_DIR", "logs")).resolve(),
         db_path=Path(os.environ.get("DB_PATH", "app.db")).resolve(),
+        supervisor_poll_seconds=int(os.environ.get(
+            "SUPERVISOR_POLL_SECONDS", "30")),
         recover_skip_recent_starting_seconds=int(os.environ.get(
             "RECOVER_SKIP_RECENT_STARTING_SECONDS", "30")),
     )
