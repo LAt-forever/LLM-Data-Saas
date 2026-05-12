@@ -38,7 +38,20 @@ def _mock_call(prompt: str, batch_size: int) -> str:
 def run_task(task_id: int, *, mock_llm: bool = False) -> None:
     """Worker main loop. Reads task by id, runs the generation loop, writes
     CSV volumes, updates progress + events. On error/auth/abort, sets the
-    task's terminal status before returning. Never raises."""
+    task's terminal status before returning. Never raises.
+
+    Abort semantics (split between worker and supervisor):
+      - DB status flip to 'aborted' happens in the tasks router (caller side).
+      - This worker checks the task's status at TWO points per round:
+          (a) once at the top of each `while` iteration, before submitting
+              a new batch of LLM futures;
+          (b) once before processing each future's result, so an abort
+              requested MID-BATCH stops CSV growth within the current batch
+              (not only at the next iteration).
+      - In-flight LLM HTTP calls are NOT cancelled by the worker. The
+        supervisor sends SIGTERM → abort_grace_seconds → SIGKILL to the
+        worker process, which lets the kernel reap any lingering threads.
+        Do not try to cancel futures here."""
     if dbmod.SessionLocal is None:
         dbmod.init_engine()
         dbmod.Base.metadata.create_all(dbmod.engine)
@@ -121,9 +134,10 @@ def run_task(task_id: int, *, mock_llm: bool = False) -> None:
 
     try:
         executor = ThreadPoolExecutor(max_workers=max_workers)
+        aborted_mid_run = False
         try:
             while current < target_count:
-                # Check abort before each round
+                # (a) Check abort at the top of each round (before submitting)
                 with Session() as s:
                     fresh = s.get(models.Task, task_id)
                     if fresh.status == "aborted":
@@ -148,6 +162,14 @@ def run_task(task_id: int, *, mock_llm: bool = False) -> None:
                                                 f"batch retry exhausted: {e}"[:200])
                         continue
                     consecutive_batch_failures = 0
+                    # (b) Check abort before writing each future's rows
+                    with Session() as s:
+                        fresh = s.get(models.Task, task_id)
+                        if fresh.status == "aborted":
+                            aborted_mid_run = True
+                            crud.add_task_event(s, task_id, "aborted",
+                                                f"aborted mid-batch at {current}/{target_count}")
+                            break
                     for line in lines:
                         if current >= target_count:
                             break
@@ -164,11 +186,16 @@ def run_task(task_id: int, *, mock_llm: bool = False) -> None:
                                             f"{current}/{target_count}")
                     pending_since_flush = 0
 
+                if aborted_mid_run:
+                    return
+
                 if consecutive_batch_failures >= 10:
                     error_status = "failed"
                     error_terminal_msg = "10 consecutive batch failures, aborting"
                     raise RetryExhausted(error_terminal_msg)
         finally:
+            # See docstring: in-flight LLM HTTP calls are not cancelled here;
+            # the supervisor sends SIGTERM → SIGKILL to kill the whole process.
             executor.shutdown(wait=False, cancel_futures=True)
             writer.close()
 
