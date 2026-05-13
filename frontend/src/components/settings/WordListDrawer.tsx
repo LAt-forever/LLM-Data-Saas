@@ -1,7 +1,7 @@
 import { Drawer, Form, Input, Select, Button, message } from 'antd';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createWordlist, updateWordlist } from '../../api/configs';
-import type { WordListCreate, WordListOut } from '../../api/types';
+import type { WordListCreate, WordListOut, WordListKind } from '../../api/types';
 
 interface Props { open: boolean; onClose: () => void; editing?: WordListOut; }
 
@@ -29,7 +29,7 @@ export function WordListDrawer({ open, onClose, editing }: Props) {
         const values = v as { name: string; kind: string; items: string };
         mutation.mutate({
           name: values.name,
-          kind: values.kind,
+          kind: values.kind as WordListKind,
           items: values.items.split('\n').map((s) => s.trim()).filter(Boolean),
         });
       }}
