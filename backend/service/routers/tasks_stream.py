@@ -1,16 +1,21 @@
 # backend/service/routers/tasks_stream.py
 import asyncio
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sse_starlette.sse import EventSourceResponse
 
 from service import sse, crud, db as dbmod
+from service.deps import require_auth
 
 router = APIRouter(prefix="/api/tasks", tags=["tasks-stream"])
 
 
 @router.get("/{id_}/stream")
-async def stream(id_: int, request: Request) -> EventSourceResponse:
+async def stream(
+    id_: int,
+    request: Request,
+    _username: str = Depends(require_auth),
+) -> EventSourceResponse:
     if dbmod.SessionLocal is None:
         dbmod.init_engine()
     with dbmod.SessionLocal() as s:

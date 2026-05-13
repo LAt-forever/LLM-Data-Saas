@@ -3,7 +3,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from service import crud
-from service.deps import get_db
+from service.deps import get_db, require_auth
 from service.schemas import CategoryCreate, CategoryUpdate, CategoryOut
 
 router = APIRouter(prefix="/api/categories", tags=["categories"])
@@ -22,13 +22,20 @@ def _to_out(obj) -> CategoryOut:
 
 
 @router.get("")
-def list_(sample_type: str | None = None,
-          db: Session = Depends(get_db)) -> list[CategoryOut]:
+def list_(
+    sample_type: str | None = None,
+    db: Session = Depends(get_db),
+    _username: str = Depends(require_auth),
+) -> list[CategoryOut]:
     return [_to_out(o) for o in crud.list_categories(db, sample_type=sample_type)]
 
 
 @router.get("/{id_}")
-def get(id_: int, db: Session = Depends(get_db)) -> CategoryOut:
+def get(
+    id_: int,
+    db: Session = Depends(get_db),
+    _username: str = Depends(require_auth),
+) -> CategoryOut:
     obj = crud.get_category(db, id_)
     if obj is None:
         raise HTTPException(404, "not found")
@@ -36,8 +43,11 @@ def get(id_: int, db: Session = Depends(get_db)) -> CategoryOut:
 
 
 @router.post("", status_code=status.HTTP_201_CREATED)
-def create(payload: CategoryCreate,
-           db: Session = Depends(get_db)) -> CategoryOut:
+def create(
+    payload: CategoryCreate,
+    db: Session = Depends(get_db),
+    _username: str = Depends(require_auth),
+) -> CategoryOut:
     try:
         obj = crud.create_category(db, payload)
     except IntegrityError as e:
@@ -46,8 +56,12 @@ def create(payload: CategoryCreate,
 
 
 @router.put("/{id_}")
-def update(id_: int, payload: CategoryUpdate,
-           db: Session = Depends(get_db)) -> CategoryOut:
+def update(
+    id_: int,
+    payload: CategoryUpdate,
+    db: Session = Depends(get_db),
+    _username: str = Depends(require_auth),
+) -> CategoryOut:
     obj = crud.get_category(db, id_)
     if obj is None:
         raise HTTPException(404, "not found")
@@ -55,7 +69,11 @@ def update(id_: int, payload: CategoryUpdate,
 
 
 @router.delete("/{id_}", status_code=status.HTTP_204_NO_CONTENT)
-def delete(id_: int, db: Session = Depends(get_db)) -> Response:
+def delete(
+    id_: int,
+    db: Session = Depends(get_db),
+    _username: str = Depends(require_auth),
+) -> Response:
     obj = crud.get_category(db, id_)
     if obj is None:
         raise HTTPException(404, "not found")

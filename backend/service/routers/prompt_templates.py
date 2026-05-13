@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.orm import Session
 
 from service import crud
-from service.deps import get_db
+from service.deps import get_db, require_auth
 from service.prompt_render import validate_template, PromptValidationError
 from service.schemas import (
     PromptTemplateCreate, PromptTemplateUpdate, PromptTemplateOut
@@ -21,13 +21,19 @@ def _to_out(obj) -> PromptTemplateOut:
 
 
 @router.get("")
-def list_(db: Session = Depends(get_db)) -> list[PromptTemplateOut]:
+def list_(
+    db: Session = Depends(get_db),
+    _username: str = Depends(require_auth),
+) -> list[PromptTemplateOut]:
     return [_to_out(o) for o in crud.list_prompt_templates(db)]
 
 
 @router.post("", status_code=status.HTTP_201_CREATED)
-def create(payload: PromptTemplateCreate,
-           db: Session = Depends(get_db)) -> PromptTemplateOut:
+def create(
+    payload: PromptTemplateCreate,
+    db: Session = Depends(get_db),
+    _username: str = Depends(require_auth),
+) -> PromptTemplateOut:
     try:
         validate_template(payload.body, payload.variables)
     except PromptValidationError as e:
@@ -37,8 +43,12 @@ def create(payload: PromptTemplateCreate,
 
 
 @router.put("/{id_}")
-def update(id_: int, payload: PromptTemplateUpdate,
-           db: Session = Depends(get_db)) -> PromptTemplateOut:
+def update(
+    id_: int,
+    payload: PromptTemplateUpdate,
+    db: Session = Depends(get_db),
+    _username: str = Depends(require_auth),
+) -> PromptTemplateOut:
     obj = crud.get_prompt_template(db, id_)
     if obj is None:
         raise HTTPException(404, "not found")
@@ -54,7 +64,11 @@ def update(id_: int, payload: PromptTemplateUpdate,
 
 
 @router.delete("/{id_}", status_code=status.HTTP_204_NO_CONTENT)
-def delete(id_: int, db: Session = Depends(get_db)) -> Response:
+def delete(
+    id_: int,
+    db: Session = Depends(get_db),
+    _username: str = Depends(require_auth),
+) -> Response:
     obj = crud.get_prompt_template(db, id_)
     if obj is None:
         raise HTTPException(404, "not found")

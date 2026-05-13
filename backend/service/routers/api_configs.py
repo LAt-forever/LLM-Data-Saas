@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.orm import Session
 
 from service import crud
-from service.deps import get_db
+from service.deps import get_db, require_auth
 from service.schemas import (
     ApiConfigCreate, ApiConfigUpdate, ApiConfigOut
 )
@@ -21,19 +21,30 @@ def _to_out(obj) -> ApiConfigOut:
 
 
 @router.get("")
-def list_(db: Session = Depends(get_db)) -> list[ApiConfigOut]:
+def list_(
+    db: Session = Depends(get_db),
+    _username: str = Depends(require_auth),
+) -> list[ApiConfigOut]:
     return [_to_out(o) for o in crud.list_api_configs(db)]
 
 
 @router.post("", status_code=status.HTTP_201_CREATED)
-def create(payload: ApiConfigCreate, db: Session = Depends(get_db)) -> ApiConfigOut:
+def create(
+    payload: ApiConfigCreate,
+    db: Session = Depends(get_db),
+    _username: str = Depends(require_auth),
+) -> ApiConfigOut:
     obj = crud.create_api_config(db, payload)
     return _to_out(obj)
 
 
 @router.put("/{id_}")
-def update(id_: int, payload: ApiConfigUpdate,
-           db: Session = Depends(get_db)) -> ApiConfigOut:
+def update(
+    id_: int,
+    payload: ApiConfigUpdate,
+    db: Session = Depends(get_db),
+    _username: str = Depends(require_auth),
+) -> ApiConfigOut:
     obj = crud.get_api_config(db, id_)
     if obj is None:
         raise HTTPException(404, "not found")
@@ -42,7 +53,11 @@ def update(id_: int, payload: ApiConfigUpdate,
 
 
 @router.delete("/{id_}", status_code=status.HTTP_204_NO_CONTENT)
-def delete(id_: int, db: Session = Depends(get_db)) -> Response:
+def delete(
+    id_: int,
+    db: Session = Depends(get_db),
+    _username: str = Depends(require_auth),
+) -> Response:
     obj = crud.get_api_config(db, id_)
     if obj is None:
         raise HTTPException(404, "not found")
@@ -53,7 +68,11 @@ def delete(id_: int, db: Session = Depends(get_db)) -> Response:
 
 
 @router.get("/{id_}/reveal")
-def reveal(id_: int, db: Session = Depends(get_db)) -> Response:
+def reveal(
+    id_: int,
+    db: Session = Depends(get_db),
+    _username: str = Depends(require_auth),
+) -> Response:
     from fastapi.responses import JSONResponse
     obj = crud.get_api_config(db, id_)
     if obj is None:
@@ -102,7 +121,11 @@ def _ping_llm(base_url: str, api_key: str, model_name: str, api_type: str) -> di
 
 
 @router.post("/{id_}/test")
-def test_config(id_: int, db: Session = Depends(get_db)) -> dict:
+def test_config(
+    id_: int,
+    db: Session = Depends(get_db),
+    _username: str = Depends(require_auth),
+) -> dict:
     obj = crud.get_api_config(db, id_)
     if obj is None:
         raise HTTPException(404, "not found")

@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 
 from service import crud, supervisor, worker_io
 from service.config import settings
-from service.deps import get_db
+from service.deps import get_db, require_auth
 from service.schemas import (
     TaskCreate, TaskOut, TaskDetail, TaskEventOut
 )
@@ -57,16 +57,25 @@ def _row_to_detail(t, events) -> TaskDetail:
 
 
 @router.get("")
-def list_(status: str | None = None, category_id: int | None = None,
-          page: int = 1, size: int = 50,
-          db: Session = Depends(get_db)) -> list[TaskOut]:
+def list_(
+    status: str | None = None,
+    category_id: int | None = None,
+    page: int = 1,
+    size: int = 50,
+    db: Session = Depends(get_db),
+    _username: str = Depends(require_auth),
+) -> list[TaskOut]:
     rows = crud.list_tasks(db, status=status, category_id=category_id,
                            page=max(1, page), size=min(max(1, size), 200))
     return [_row_to_out(t) for t in rows]
 
 
 @router.get("/{id_}")
-def get(id_: int, db: Session = Depends(get_db)) -> TaskDetail:
+def get(
+    id_: int,
+    db: Session = Depends(get_db),
+    _username: str = Depends(require_auth),
+) -> TaskDetail:
     t = crud.get_task(db, id_)
     if t is None:
         raise HTTPException(404, "not found")
@@ -74,7 +83,11 @@ def get(id_: int, db: Session = Depends(get_db)) -> TaskDetail:
 
 
 @router.post("", status_code=status.HTTP_201_CREATED)
-def create(payload: TaskCreate, db: Session = Depends(get_db)) -> TaskOut:
+def create(
+    payload: TaskCreate,
+    db: Session = Depends(get_db),
+    _username: str = Depends(require_auth),
+) -> TaskOut:
     try:
         t = crud.create_task_snapshot(
             db,
@@ -111,7 +124,11 @@ def create(payload: TaskCreate, db: Session = Depends(get_db)) -> TaskOut:
 
 
 @router.post("/{id_}/abort")
-def abort(id_: int, db: Session = Depends(get_db)) -> dict:
+def abort(
+    id_: int,
+    db: Session = Depends(get_db),
+    _username: str = Depends(require_auth),
+) -> dict:
     t = crud.get_task(db, id_)
     if t is None:
         raise HTTPException(404, "not found")
@@ -125,8 +142,12 @@ def abort(id_: int, db: Session = Depends(get_db)) -> dict:
 
 
 @router.delete("/{id_}", status_code=status.HTTP_204_NO_CONTENT)
-def delete(id_: int, delete_files: bool = True,
-           db: Session = Depends(get_db)) -> Response:
+def delete(
+    id_: int,
+    delete_files: bool = True,
+    db: Session = Depends(get_db),
+    _username: str = Depends(require_auth),
+) -> Response:
     t = crud.get_task(db, id_)
     if t is None:
         raise HTTPException(404, "not found")
@@ -146,7 +167,11 @@ def delete(id_: int, delete_files: bool = True,
 
 
 @router.get("/{id_}/preview")
-def preview(id_: int, db: Session = Depends(get_db)) -> dict:
+def preview(
+    id_: int,
+    db: Session = Depends(get_db),
+    _username: str = Depends(require_auth),
+) -> dict:
     t = crud.get_task(db, id_)
     if t is None:
         raise HTTPException(404, "not found")
@@ -172,7 +197,11 @@ def preview(id_: int, db: Session = Depends(get_db)) -> dict:
 
 
 @router.get("/{id_}/download")
-def download(id_: int, db: Session = Depends(get_db)):
+def download(
+    id_: int,
+    db: Session = Depends(get_db),
+    _username: str = Depends(require_auth),
+):
     t = crud.get_task(db, id_)
     if t is None:
         raise HTTPException(404, "not found")
@@ -210,8 +239,13 @@ def download(id_: int, db: Session = Depends(get_db)):
 
 
 @router.get("/{id_}/events")
-def events(id_: int, since_id: int = 0, limit: int = 200,
-           db: Session = Depends(get_db)) -> list[TaskEventOut]:
+def events(
+    id_: int,
+    since_id: int = 0,
+    limit: int = 200,
+    db: Session = Depends(get_db),
+    _username: str = Depends(require_auth),
+) -> list[TaskEventOut]:
     t = crud.get_task(db, id_)
     if t is None:
         raise HTTPException(404, "not found")
@@ -222,7 +256,11 @@ def events(id_: int, since_id: int = 0, limit: int = 200,
 
 
 @router.get("/{id_}/log")
-def log(id_: int, lines: int = 1000) -> dict:
+def log(
+    id_: int,
+    lines: int = 1000,
+    _username: str = Depends(require_auth),
+) -> dict:
     if lines <= 0:
         lines = 1000
     path = settings.task_log(id_)
