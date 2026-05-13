@@ -13,6 +13,7 @@ from service.routers import categories as categories_router
 from service.routers import meta as meta_router
 from service.routers import tasks as tasks_router
 from service.routers import tasks_stream as tasks_stream_router
+from service.routers import auth as auth_router
 
 
 @asynccontextmanager
@@ -59,6 +60,7 @@ app.include_router(categories_router.router)
 app.include_router(meta_router.router)
 app.include_router(tasks_router.router)
 app.include_router(tasks_stream_router.router)
+app.include_router(auth_router.router)
 
 from service.static import mount_static  # noqa: E402
 
