@@ -37,11 +37,21 @@
 ## 快速开始（Docker）
 
 ```bash
-# 克隆仓库后
+# 1. 创建 .env 文件并设置管理员密码
+#    密码需要生成 bcrypt 哈希，参见下方"生成密码哈希"
+cp .env.example .env
+# 编辑 .env，填入 ADMIN_PASSWORD_HASH
+
+# 2. 启动服务
 docker-compose up --build -d
 
-# 访问
+# 3. 访问
 open http://localhost:8000
+```
+
+**生成密码哈希：**
+```bash
+cd backend && .venv/bin/python -c "import bcrypt; print(bcrypt.hashpw(b'your-password', bcrypt.gensalt()).decode())"
 ```
 
 数据持久化：
