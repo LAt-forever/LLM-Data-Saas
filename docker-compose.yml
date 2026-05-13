@@ -12,6 +12,8 @@ services:
       - LOG_DIR=/app/logs
       - DB_PATH=/app/app.db
       - SUPERVISOR_POLL_SECONDS=30
+      - ADMIN_USERNAME=${ADMIN_USERNAME:-admin}
+      - ADMIN_PASSWORD_HASH=${ADMIN_PASSWORD_HASH}
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz')"]
