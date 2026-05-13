@@ -20,6 +20,9 @@ class Settings:
     # spawn_worker window where mark_task_started has landed but
     # set_task_worker_pid hasn't yet.
     recover_skip_recent_starting_seconds: int = 30
+    # Auth
+    admin_username: str = "admin"
+    admin_password_hash: str = ""
 
     def ensure_dirs(self) -> None:
         self.data_dir.mkdir(parents=True, exist_ok=True)
@@ -42,6 +45,8 @@ def _load() -> Settings:
             "SUPERVISOR_POLL_SECONDS", "30")),
         recover_skip_recent_starting_seconds=int(os.environ.get(
             "RECOVER_SKIP_RECENT_STARTING_SECONDS", "30")),
+        admin_username=os.environ.get("ADMIN_USERNAME", "admin"),
+        admin_password_hash=os.environ.get("ADMIN_PASSWORD_HASH", ""),
     )
 
 
