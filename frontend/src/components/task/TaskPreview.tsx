@@ -1,6 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
-import { Table, Spin } from 'antd';
-import { previewTask } from '../api/tasks';
+import { Table } from 'antd';
+import { previewTask } from '../../api/tasks';
+import { LoadingState } from '../common/LoadingState';
+import { EmptyState } from '../common/EmptyState';
 
 export function TaskPreview({ taskId }: { taskId: number }) {
   const { data, isLoading } = useQuery({
@@ -8,9 +10,15 @@ export function TaskPreview({ taskId }: { taskId: number }) {
     queryFn: () => previewTask(taskId),
   });
 
-  if (isLoading) return <Spin />;
+  if (isLoading) return <LoadingState type="table" rows={4} />;
+
   if (!data || data.rows.length === 0) {
-    return <div style={{ color: '#888' }}>暂无预览数据</div>;
+    return (
+      <EmptyState
+        title="暂无预览数据"
+        description="任务生成数据后，将自动显示前几行内容"
+      />
+    );
   }
 
   const columns = data.header.map((h, i) => ({
@@ -18,6 +26,7 @@ export function TaskPreview({ taskId }: { taskId: number }) {
     dataIndex: i,
     key: i,
     ellipsis: true,
+    width: 180,
   }));
 
   const dataSource = data.rows.map((row, idx) => ({
@@ -30,7 +39,7 @@ export function TaskPreview({ taskId }: { taskId: number }) {
       columns={columns}
       dataSource={dataSource}
       size="small"
-      pagination={{ pageSize: 10 }}
+      pagination={{ pageSize: 10, size: 'small', showSizeChanger: false }}
       scroll={{ x: 'max-content' }}
     />
   );
