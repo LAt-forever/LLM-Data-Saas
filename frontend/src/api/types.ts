@@ -94,3 +94,63 @@ export interface PreviewData {
 export interface LogData {
   lines: string[];
 }
+
+export interface ApiConfigCreate {
+  name: string;
+  base_url: string;
+  api_key: string;
+  model_name: string;
+  type: ApiType;
+}
+
+export interface ApiConfigUpdate {
+  name?: string;
+  base_url?: string;
+  api_key?: string;
+  model_name?: string;
+  type?: ApiType;
+}
+
+export interface WordListCreate {
+  name: string;
+  kind: WordListKind;
+  items: string[];
+}
+
+export interface WordListUpdate {
+  name?: string;
+  kind?: WordListKind;
+  items?: string[];
+}
+
+export interface PromptTemplateCreate {
+  name: string;
+  body: string;
+  variables: string[];
+}
+
+export interface PromptTemplateUpdate {
+  name?: string;
+  body?: string;
+  variables?: string[];
+}
+
+export interface CategoryCreate {
+  sample_type: SampleType;
+  name: string;
+  description?: string;
+  prompt_template_id: number;
+  scenario_list_id: number;
+  tone_list_id: number;
+  default_target_count: number;
+}
+
+export interface CategoryUpdate {
+  sample_type?: SampleType;
+  name?: string;
+  description?: string;
+  prompt_template_id?: number;
+  scenario_list_id?: number;
+  tone_list_id?: number;
+  default_target_count?: number;
+}

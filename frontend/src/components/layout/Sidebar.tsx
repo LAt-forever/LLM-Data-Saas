@@ -3,21 +3,48 @@ import { Menu, Button } from 'antd';
 import {
   DashboardOutlined,
   SettingOutlined,
+  ApiOutlined,
+  BookOutlined,
+  FileTextOutlined,
+  TagsOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
 } from '@ant-design/icons';
 import { Link, useLocation } from 'wouter';
 
 const NAV_ITEMS = [
-  { key: 'tasks', icon: <DashboardOutlined />, label: '任务中心', href: '/' },
-  { key: 'settings', icon: <SettingOutlined />, label: '配置管理', href: '#' },
+  {
+    key: 'tasks',
+    icon: <DashboardOutlined />,
+    label: '任务中心',
+    href: '/',
+  },
+  {
+    key: 'settings',
+    icon: <SettingOutlined />,
+    label: '配置管理',
+    children: [
+      { key: 'api-configs', icon: <ApiOutlined />, label: 'API 配置', href: '/settings/api-configs' },
+      { key: 'wordlists', icon: <BookOutlined />, label: '词库', href: '/settings/wordlists' },
+      { key: 'prompt-templates', icon: <FileTextOutlined />, label: 'Prompt 模板', href: '/settings/prompt-templates' },
+      { key: 'categories', icon: <TagsOutlined />, label: '分类', href: '/settings/categories' },
+    ],
+  },
 ];
 
 export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const [location] = useLocation();
+  const [openKeys, setOpenKeys] = useState<string[]>(['settings']);
 
-  const activeKey = location === '/' ? 'tasks' : '';
+  const activeKey = (() => {
+    if (location === '/') return 'tasks';
+    if (location.startsWith('/settings/api-configs')) return 'api-configs';
+    if (location.startsWith('/settings/wordlists')) return 'wordlists';
+    if (location.startsWith('/settings/prompt-templates')) return 'prompt-templates';
+    if (location.startsWith('/settings/categories')) return 'categories';
+    return '';
+  })();
 
   return (
     <aside
@@ -31,7 +58,6 @@ export function Sidebar() {
         flexShrink: 0,
       }}
     >
-      {/* Logo */}
       <div
         style={{
           height: 48,
@@ -42,15 +68,7 @@ export function Sidebar() {
         }}
       >
         {!collapsed && (
-          <span
-            style={{
-              color: '#fff',
-              fontSize: 15,
-              fontWeight: 600,
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-            }}
-          >
+          <span style={{ color: '#fff', fontSize: 15, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden' }}>
             LLM 样本数据
           </span>
         )}
@@ -58,38 +76,37 @@ export function Sidebar() {
           type="text"
           icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
           onClick={() => setCollapsed(!collapsed)}
-          style={{
-            color: 'rgba(255,255,255,0.5)',
-            marginLeft: 'auto',
-            padding: 0,
-            width: 24,
-            height: 24,
-          }}
+          style={{ color: 'rgba(255,255,255,0.5)', marginLeft: 'auto', padding: 0, width: 24, height: 24 }}
         />
       </div>
 
-      {/* Nav */}
       <Menu
         theme="dark"
         mode="inline"
         inlineCollapsed={collapsed}
         selectedKeys={[activeKey]}
-        style={{
-          background: 'transparent',
-          borderRight: 'none',
-          flex: 1,
-          paddingTop: 8,
-        }}
-        items={NAV_ITEMS.map((item) => ({
-          key: item.key,
-          icon: item.icon,
-          label: item.href === '#' ? (
-            <span style={{ color: 'rgba(255,255,255,0.35)' }}>{item.label}</span>
-          ) : (
-            <Link href={item.href}>{item.label}</Link>
-          ),
-          disabled: item.href === '#',
-        }))}
+        openKeys={collapsed ? [] : openKeys}
+        onOpenChange={setOpenKeys}
+        style={{ background: 'transparent', borderRight: 'none', flex: 1, paddingTop: 8 }}
+        items={NAV_ITEMS.map((item) => {
+          if (item.children) {
+            return {
+              key: item.key,
+              icon: item.icon,
+              label: item.label,
+              children: item.children.map((c) => ({
+                key: c.key,
+                icon: c.icon,
+                label: <Link href={c.href}>{c.label}</Link>,
+              })),
+            };
+          }
+          return {
+            key: item.key,
+            icon: item.icon,
+            label: <Link href={item.href!}>{item.label}</Link>,
+          };
+        })}
       />
     </aside>
   );
