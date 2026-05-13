@@ -82,7 +82,7 @@ export function TaskList({ tasks, loading, onRowClick }: Props) {
               percent={pct}
               size={[60, 6]}
               showInfo={false}
-              style={{ margin: 0 }}
+              style={{ margin: 0, transition: 'all 0.5s ease' }}
             />
             <span style={{ fontSize: 12, color: '#64748b', fontFamily: 'monospace' }}>
               {t.progress_current}/{t.progress_total}

@@ -35,7 +35,7 @@ export function HomePage() {
       (query.state.data as TaskOut[] | undefined)?.some(
         (t) => t.status === 'running'
       )
-        ? 3000
+        ? 1000
         : false,
   });
 
