@@ -94,8 +94,6 @@ def run_task(task_id: int, *, mock_llm: bool = False) -> None:
         with Session() as s:
             crud.update_task_progress(s, task_id, current)
 
-    flush_thresh = _flush_threshold(batch_size)
-    pending_since_flush = 0
     consecutive_batch_failures = 0
     error_terminal_msg: str | None = None
     error_status = "failed"
@@ -176,15 +174,13 @@ def run_task(task_id: int, *, mock_llm: bool = False) -> None:
                         writer.write_row([line, category_name])
                         current += 1
                         batch_added += 1
-                        pending_since_flush += 1
-                writer.flush()
 
-                if pending_since_flush >= flush_thresh or current >= target_count:
+                    # 每个 batch 完成后立即更新进度 + 写 progress event
                     with Session() as s:
                         crud.update_task_progress(s, task_id, current)
                         crud.add_task_event(s, task_id, "progress",
                                             f"{current}/{target_count}")
-                    pending_since_flush = 0
+                writer.flush()
 
                 if aborted_mid_run:
                     return

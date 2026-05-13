@@ -18,10 +18,26 @@ export function useTaskStream(taskId: number | undefined) {
     });
 
     es.addEventListener('event', (e: MessageEvent) => {
-      void JSON.parse(e.data);
+      const data = JSON.parse(e.data) as { type: string; message: string; ts: string };
       if (e.lastEventId) {
         lastIdRef.current = parseInt(e.lastEventId, 10);
       }
+
+      // 零延迟更新：progress 事件直接修改缓存
+      if (data.type === 'progress') {
+        const match = data.message.match(/^(\d+)\/(\d+)$/);
+        if (match) {
+          queryClient.setQueryData(['task', taskId], (old: any) => {
+            if (!old) return old;
+            return {
+              ...old,
+              progress_current: parseInt(match[1], 10),
+              progress_total: parseInt(match[2], 10),
+            };
+          });
+        }
+      }
+
       queryClient.invalidateQueries({ queryKey: ['task', taskId] });
       queryClient.invalidateQueries({ queryKey: ['preview', taskId] });
       queryClient.invalidateQueries({ queryKey: ['log', taskId] });
