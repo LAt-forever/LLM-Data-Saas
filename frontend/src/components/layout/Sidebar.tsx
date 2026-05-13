@@ -9,8 +9,11 @@ import {
   TagsOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
+  LogoutOutlined,
+  UserOutlined,
 } from '@ant-design/icons';
 import { Link, useLocation } from 'wouter';
+import { useAuth } from '../../hooks/useAuth';
 
 const NAV_ITEMS = [
   {
@@ -36,6 +39,7 @@ export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const [location] = useLocation();
   const [openKeys, setOpenKeys] = useState<string[]>(['settings']);
+  const { user, logout } = useAuth();
 
   const activeKey = (() => {
     if (location === '/') return 'tasks';
@@ -108,6 +112,64 @@ export function Sidebar() {
           };
         })}
       />
+
+      {/* User info + logout */}
+      {user && (
+        <div
+          style={{
+            padding: '12px 16px',
+            borderTop: '1px solid rgba(255,255,255,0.06)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+          }}
+        >
+          {!collapsed && (
+            <>
+              <UserOutlined style={{ color: 'rgba(255,255,255,0.5)', fontSize: 14 }} />
+              <span
+                style={{
+                  color: 'rgba(255,255,255,0.65)',
+                  fontSize: 13,
+                  flex: 1,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {user.username}
+              </span>
+              <Button
+                type="text"
+                icon={<LogoutOutlined />}
+                onClick={logout}
+                style={{
+                  color: 'rgba(255,255,255,0.4)',
+                  padding: 0,
+                  width: 24,
+                  height: 24,
+                }}
+                title="退出登录"
+              />
+            </>
+          )}
+          {collapsed && (
+            <Button
+              type="text"
+              icon={<LogoutOutlined />}
+              onClick={logout}
+              style={{
+                color: 'rgba(255,255,255,0.4)',
+                padding: 0,
+                width: 24,
+                height: 24,
+                margin: '0 auto',
+              }}
+              title="退出登录"
+            />
+          )}
+        </div>
+      )}
     </aside>
   );
 }
