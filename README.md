@@ -2,7 +2,7 @@
 
 把硬编码的 Python 样本生成脚本，做成一套可配置、可监控、可续跑的前后端服务。非技术成员也能在网页上配置接口、模板、词库、分类，并启动数据生成任务。
 
-> **安全提示：** 本服务设计为内网部署，无用户登录/权限控制。请勿暴露到公网。
+> **安全提示：** 本服务设计为内网部署，已添加管理员登录鉴权。部署时请务必设置 `ADMIN_PASSWORD_HASH`，不要暴露到公网。
 
 ---
 
@@ -118,6 +118,7 @@ cd frontend && npm run dev
 │   │   ├── sse.py               # SSE 推送模块
 │   │   ├── static.py            # 静态文件托管（SPA fallback）
 │   │   └── routers/             # REST API 路由
+│   │       ├── auth.py          # 登录/登出/会话
 │   │       ├── tasks.py
 │   │       ├── tasks_stream.py
 │   │       ├── api_configs.py
@@ -147,7 +148,10 @@ cd frontend && npm run dev
 
 | 端点 | 说明 |
 |---|---|
-| `GET /healthz` | 健康检查 |
+| `GET /healthz` | 健康检查（公开） |
+| `POST /api/auth/login` | 管理员登录 |
+| `POST /api/auth/logout` | 退出登录 |
+| `GET /api/auth/me` | 当前用户信息 |
 | `GET /api/api-configs` | API 配置 CRUD + test/reveal |
 | `GET /api/wordlists` | 词库 CRUD |
 | `GET /api/prompt-templates` | Prompt 模板 CRUD |
@@ -177,6 +181,18 @@ cd frontend && npm run dev
 | `DB_PATH` | `app.db` | SQLite 数据库文件 |
 | `SUPERVISOR_POLL_SECONDS` | `30` | Worker 孤儿扫描间隔 |
 
+### 认证（必填）
+
+| 变量 | 默认值 | 说明 |
+|---|---|---|
+| `ADMIN_USERNAME` | `admin` | 管理员登录账号 |
+| `ADMIN_PASSWORD_HASH` | — | 管理员密码 bcrypt 哈希（**必填**） |
+
+生成密码哈希：
+```bash
+cd backend && python -c "import bcrypt; print(bcrypt.hashpw(b'your-password', bcrypt.gensalt()).decode())"
+```
+
 ---
 
 ## 测试
@@ -204,6 +220,5 @@ pytest tests/ -q
 
 ## 后续演进（预留）
 
-- 用户登录 / 角色权限
 - SQLite → PostgreSQL，subprocess → Celery+Redis
 - CSV 二次处理（去重 / 抽样 / 评测）
