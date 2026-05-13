@@ -1,4 +1,4 @@
-import { apiGet, apiPost, apiDelete } from './client';
+import { apiGet, apiPost, apiPut, apiDelete } from './client';
 import type {
   ApiConfigOut, ApiConfigCreate, ApiConfigUpdate,
   CategoryOut, CategoryCreate, CategoryUpdate,
@@ -15,17 +15,8 @@ export function createApiConfig(payload: ApiConfigCreate) {
   return apiPost<ApiConfigOut>('/api/api-configs', payload);
 }
 
-export async function updateApiConfig(id: number, payload: ApiConfigUpdate): Promise<ApiConfigOut> {
-  const res = await fetch(`/api/api-configs/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  });
-  if (!res.ok) {
-    const text = await res.text().catch(() => 'unknown error');
-    throw new Error(text);
-  }
-  return res.json();
+export function updateApiConfig(id: number, payload: ApiConfigUpdate) {
+  return apiPut<ApiConfigOut>(`/api/api-configs/${id}`, payload);
 }
 
 export function deleteApiConfig(id: number) {
@@ -50,17 +41,8 @@ export function createWordlist(payload: WordListCreate) {
   return apiPost<WordListOut>('/api/wordlists', payload);
 }
 
-export async function updateWordlist(id: number, payload: WordListUpdate): Promise<WordListOut> {
-  const res = await fetch(`/api/wordlists/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  });
-  if (!res.ok) {
-    const text = await res.text().catch(() => 'unknown error');
-    throw new Error(text);
-  }
-  return res.json();
+export function updateWordlist(id: number, payload: WordListUpdate) {
+  return apiPut<WordListOut>(`/api/wordlists/${id}`, payload);
 }
 
 export function deleteWordlist(id: number) {
@@ -76,17 +58,8 @@ export function createPromptTemplate(payload: PromptTemplateCreate) {
   return apiPost<PromptTemplateOut>('/api/prompt-templates', payload);
 }
 
-export async function updatePromptTemplate(id: number, payload: PromptTemplateUpdate): Promise<PromptTemplateOut> {
-  const res = await fetch(`/api/prompt-templates/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  });
-  if (!res.ok) {
-    const text = await res.text().catch(() => 'unknown error');
-    throw new Error(text);
-  }
-  return res.json();
+export function updatePromptTemplate(id: number, payload: PromptTemplateUpdate) {
+  return apiPut<PromptTemplateOut>(`/api/prompt-templates/${id}`, payload);
 }
 
 export function deletePromptTemplate(id: number) {
@@ -107,17 +80,8 @@ export function createCategory(payload: CategoryCreate) {
   return apiPost<CategoryOut>('/api/categories', payload);
 }
 
-export async function updateCategory(id: number, payload: CategoryUpdate): Promise<CategoryOut> {
-  const res = await fetch(`/api/categories/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  });
-  if (!res.ok) {
-    const text = await res.text().catch(() => 'unknown error');
-    throw new Error(text);
-  }
-  return res.json();
+export function updateCategory(id: number, payload: CategoryUpdate) {
+  return apiPut<CategoryOut>(`/api/categories/${id}`, payload);
 }
 
 export function deleteCategory(id: number) {

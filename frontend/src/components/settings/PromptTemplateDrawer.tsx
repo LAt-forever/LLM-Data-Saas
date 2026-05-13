@@ -10,9 +10,10 @@ export function PromptTemplateDrawer({ open, onClose, editing }: Props) {
   const [form] = Form.useForm();
   const queryClient = useQueryClient();
   const isEdit = !!editing;
-  const body = Form.useWatch('body', form);
+  const bodyValue = Form.useWatch<string>('body', form);
+  const body = typeof bodyValue === 'string' ? bodyValue : '';
 
-  const variables = useMemo(() => {
+  const variables = useMemo<string[]>(() => {
     if (!body) return [];
     const matches = body.match(/\{([a-zA-Z_]\w*)\}/g);
     if (!matches) return [];
@@ -34,7 +35,10 @@ export function PromptTemplateDrawer({ open, onClose, editing }: Props) {
     <Drawer title={isEdit ? '编辑模板' : '新建模板'} placement="right" size="large" style={{ width: 560 }} open={open} onClose={onClose} destroyOnClose
       footer={<div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}><Button onClick={onClose}>取消</Button><Button type="primary" loading={mutation.isPending} onClick={() => form.submit()}>保存</Button></div>}
     >
-      <Form form={form} layout="vertical" onFinish={(v) => mutation.mutate(v)} initialValues={editing || {}}>
+      <Form form={form} layout="vertical" onFinish={(v) => {
+        const values = v as { name: string; body: string };
+        mutation.mutate({ name: values.name, body: values.body, variables });
+      }} initialValues={editing || {}}>
         <Form.Item name="name" label="名称" rules={[{ required: true }]}><Input /></Form.Item>
         <Form.Item name="body" label="模板内容" rules={[{ required: true }]} extra="使用 {variable} 语法定义变量">
           <Input.TextArea rows={8} placeholder="Generate a {tone} sample about {scenario}" />

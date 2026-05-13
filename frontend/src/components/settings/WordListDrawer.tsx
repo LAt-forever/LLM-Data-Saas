@@ -25,7 +25,14 @@ export function WordListDrawer({ open, onClose, editing }: Props) {
     <Drawer title={isEdit ? '编辑词库' : '新建词库'} placement="right" size="large" style={{ width: 480 }} open={open} onClose={onClose} destroyOnClose
       footer={<div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}><Button onClick={onClose}>取消</Button><Button type="primary" loading={mutation.isPending} onClick={() => form.submit()}>保存</Button></div>}
     >
-      <Form form={form} layout="vertical" onFinish={(v) => mutation.mutate(v)}
+      <Form form={form} layout="vertical" onFinish={(v) => {
+        const values = v as { name: string; kind: string; items: string };
+        mutation.mutate({
+          name: values.name,
+          kind: values.kind,
+          items: values.items.split('\n').map((s) => s.trim()).filter(Boolean),
+        });
+      }}
         initialValues={editing ? { ...editing, items: editing.items.join('\n') } : { kind: 'scenario' }}
       >
         <Form.Item name="name" label="名称" rules={[{ required: true }]}><Input /></Form.Item>
