@@ -1,0 +1,97 @@
+:root {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  color: #181d26;
+  background: #f8fafc;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-width: 0;
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  background: #f8fafc;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(170, 45, 0, 0.28);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(170, 45, 0, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(170, 45, 0, 0);
+  }
+}
+
+.airtable-table .ant-table {
+  border: 1px solid #dddddd;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.airtable-table .ant-table-thead > tr > th {
+  border-bottom: 1px solid #dddddd;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+.airtable-table .ant-table-tbody > tr > td {
+  border-bottom: 1px solid #ececec;
+}
+
+.airtable-table .ant-table-tbody > tr:last-child > td {
+  border-bottom: 0;
+}
+
+.task-row {
+  transition: background-color 160ms ease;
+}
+
+.task-row:hover > td {
+  background: #fbfaf7 !important;
+}
+
+.workbench-action-button.ant-btn-text:not(.ant-btn-dangerous) {
+  color: #333840;
+}
+
+.workbench-action-button.ant-btn-text:not(.ant-btn-dangerous):hover {
+  color: #181d26;
+  background: #f5e9d4;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.001ms !important;
+  }
+}
