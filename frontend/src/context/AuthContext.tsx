@@ -1,22 +1,5 @@
-import { createContext, useState, useEffect, useCallback, type ReactNode } from 'react';
-
-export interface AuthUser {
-  username: string;
-}
-
-interface AuthContextValue {
-  user: AuthUser | null;
-  isLoading: boolean;
-  login: (username: string, password: string) => Promise<void>;
-  logout: () => Promise<void>;
-}
-
-export const AuthContext = createContext<AuthContextValue>({
-  user: null,
-  isLoading: true,
-  login: async () => {},
-  logout: async () => {},
-});
+import { useState, useEffect, useCallback, type ReactNode } from 'react';
+import { AuthContext, type AuthUser } from './auth';
 
 const API_BASE = import.meta.env.VITE_API_BASE || '';
 

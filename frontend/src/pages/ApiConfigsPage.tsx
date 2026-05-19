@@ -8,6 +8,10 @@ import { ApiConfigList } from '../components/settings/ApiConfigList';
 import { ApiConfigDrawer } from '../components/settings/ApiConfigDrawer';
 import type { ApiConfigOut } from '../api/types';
 
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
 export function ApiConfigsPage() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editing, setEditing] = useState<ApiConfigOut>();
@@ -27,14 +31,14 @@ export function ApiConfigsPage() {
       const res = await testApiConfig(id);
       if (res.ok) message.success({ content: `连通成功 (${res.latency_ms}ms)`, key: `test-${id}` });
       else message.error({ content: `失败: ${res.error}`, key: `test-${id}` });
-    } catch (e: any) { message.error({ content: e.message, key: `test-${id}` }); }
+    } catch (e) { message.error({ content: errorMessage(e), key: `test-${id}` }); }
   };
 
   const handleReveal = async (id: number) => {
     try {
       const res = await revealApiKey(id);
       Modal.info({ title: 'API Key', content: <code style={{ wordBreak: 'break-all' }}>{res.api_key}</code> });
-    } catch (e: any) { message.error(e.message); }
+    } catch (e) { message.error(errorMessage(e)); }
   };
 
   return (

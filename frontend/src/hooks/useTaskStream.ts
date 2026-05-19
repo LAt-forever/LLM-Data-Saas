@@ -1,11 +1,11 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import type { TaskDetail } from '../api/types';
 import { useAppStore } from '../store/appStore';
 
 export function useTaskStream(taskId: number | undefined) {
   const queryClient = useQueryClient();
   const setSseState = useAppStore((s) => s.setSseState);
-  const lastIdRef = useRef(0);
 
   useEffect(() => {
     if (taskId === undefined) return;
@@ -19,15 +19,12 @@ export function useTaskStream(taskId: number | undefined) {
 
     es.addEventListener('event', (e: MessageEvent) => {
       const data = JSON.parse(e.data) as { type: string; message: string; ts: string };
-      if (e.lastEventId) {
-        lastIdRef.current = parseInt(e.lastEventId, 10);
-      }
 
       // 零延迟更新：progress 事件直接修改缓存
       if (data.type === 'progress') {
         const match = data.message.match(/^(\d+)\/(\d+)$/);
         if (match) {
-          queryClient.setQueryData(['task', taskId], (old: any) => {
+          queryClient.setQueryData<TaskDetail>(['task', taskId], (old) => {
             if (!old) return old;
             return {
               ...old,
@@ -45,9 +42,6 @@ export function useTaskStream(taskId: number | undefined) {
 
     es.addEventListener('finished', (e: MessageEvent) => {
       void JSON.parse(e.data);
-      if (e.lastEventId) {
-        lastIdRef.current = parseInt(e.lastEventId, 10);
-      }
       queryClient.invalidateQueries({ queryKey: ['task', taskId] });
       queryClient.invalidateQueries({ queryKey: ['preview', taskId] });
       queryClient.invalidateQueries({ queryKey: ['log', taskId] });
@@ -68,6 +62,4 @@ export function useTaskStream(taskId: number | undefined) {
       es.close();
     };
   }, [taskId, queryClient, setSseState]);
-
-  return { lastEventId: lastIdRef.current };
 }

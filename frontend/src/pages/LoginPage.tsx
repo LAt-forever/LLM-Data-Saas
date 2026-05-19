@@ -8,7 +8,7 @@ export function LoginPage() {
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { login } = useAuth();
-  const [_, navigate] = useLocation();
+  const [, navigate] = useLocation();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
