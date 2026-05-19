@@ -1,5 +1,6 @@
 import { Button, Space, Input } from 'antd';
 import { PlusOutlined, SearchOutlined } from '@ant-design/icons';
+import { colors } from '../../theme/tokens';
 
 interface FilterItem {
   key: string;
@@ -31,52 +32,49 @@ export function Toolbar({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        gap: 16,
+        gap: 14,
         marginBottom: 16,
         flexWrap: 'wrap',
+        minWidth: 0,
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', minWidth: 0 }}>
         {filters?.map((f) => (
           <button
             key={f.key}
             onClick={() => onFilterChange?.(f.key)}
             style={{
-              padding: '4px 12px',
-              borderRadius: 6,
-              border: 'none',
+              height: 32,
+              padding: '0 12px',
+              borderRadius: 8,
+              border: f.active ? `1px solid #d8c8aa` : '1px solid transparent',
               fontSize: 13,
               fontWeight: 500,
               cursor: 'pointer',
-              background: f.active ? '#eff6ff' : 'transparent',
-              color: f.active ? '#2563eb' : '#64748b',
-              transition: 'all 0.15s',
+              background: f.active ? colors.primaryBg : 'transparent',
+              color: f.active ? colors.text.primary : colors.text.secondary,
+              transition: 'background 160ms ease, border-color 160ms ease, color 160ms ease',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              whiteSpace: 'nowrap',
             }}
           >
             {f.label}
             {typeof f.count === 'number' && (
-              <span
-                style={{
-                  marginLeft: 6,
-                  fontSize: 11,
-                  fontWeight: 600,
-                  color: f.active ? '#2563eb' : '#94a3b8',
-                }}
-              >
-                {f.count}
-              </span>
+              <span style={{ fontSize: 11, fontWeight: 500, color: colors.text.tertiary }}>{f.count}</span>
             )}
           </button>
         ))}
       </div>
 
-      <Space>
+      <Space wrap>
         {onSearch && (
           <Input
-            prefix={<SearchOutlined style={{ color: '#94a3b8' }} />}
+            prefix={<SearchOutlined style={{ color: colors.text.tertiary }} />}
             placeholder={searchPlaceholder}
             onChange={(e) => onSearch(e.target.value)}
-            style={{ width: 200 }}
+            style={{ width: 220 }}
             size="middle"
           />
         )}

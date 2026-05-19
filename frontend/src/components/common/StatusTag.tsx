@@ -24,7 +24,7 @@ export function StatusTag({
   size = 'md',
   pulse = false,
 }: StatusTagProps) {
-  const colors = statusColors[status] || statusColors.pending;
+  const color = statusColors[status] || statusColors.pending;
   const label = STATUS_LABELS[status] || status;
 
   return (
@@ -33,13 +33,14 @@ export function StatusTag({
         display: 'inline-flex',
         alignItems: 'center',
         gap: size === 'sm' ? 4 : 6,
-        padding: size === 'sm' ? '1px 6px' : '2px 8px',
+        padding: size === 'sm' ? '1px 7px' : '2px 8px',
         borderRadius: 4,
+        border: `1px solid ${color.border || 'transparent'}`,
         fontSize: size === 'sm' ? 12 : 13,
         fontWeight: 500,
         lineHeight: 1.5,
-        background: colors.bg,
-        color: colors.text,
+        background: color.bg,
+        color: color.text,
         whiteSpace: 'nowrap',
       }}
     >
@@ -49,7 +50,7 @@ export function StatusTag({
             width: size === 'sm' ? 6 : 8,
             height: size === 'sm' ? 6 : 8,
             borderRadius: '50%',
-            background: colors.dot,
+            background: color.dot,
             flexShrink: 0,
             animation: pulse ? 'pulse 2s infinite' : undefined,
           }}

@@ -1,5 +1,5 @@
-import { Button, Empty } from 'antd';
-import { InboxOutlined } from '@ant-design/icons';
+import { Button } from 'antd';
+import { colors } from '../../theme/tokens';
 
 interface EmptyStateProps {
   title?: string;
@@ -15,23 +15,47 @@ export function EmptyState({
   onAction,
 }: EmptyStateProps) {
   return (
-    <div style={{ padding: '48px 24px', textAlign: 'center' }}>
-      <Empty
-        image={<InboxOutlined style={{ fontSize: 48, color: '#cbd5e1' }} />}
-        description={
-          <div>
-            <div style={{ fontSize: 14, fontWeight: 500, color: '#0f172a', marginBottom: 4 }}>
-              {title}
-            </div>
-            <div style={{ fontSize: 13, color: '#94a3b8' }}>{description}</div>
-          </div>
-        }
-      />
-      {actionLabel && onAction && (
-        <Button type="primary" style={{ marginTop: 16 }} onClick={onAction}>
-          {actionLabel}
-        </Button>
-      )}
+    <div
+      style={{
+        border: `1px solid ${colors.border}`,
+        borderRadius: 10,
+        background: colors.bgElevated,
+        padding: 28,
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+        gap: 20,
+        alignItems: 'center',
+      }}
+    >
+      <div style={{ minWidth: 0 }}>
+        <div style={{ fontSize: 18, fontWeight: 400, color: colors.text.primary, marginBottom: 6 }}>
+          {title}
+        </div>
+        <div style={{ fontSize: 13, color: colors.text.tertiary, lineHeight: 1.5, maxWidth: 520 }}>
+          {description}
+        </div>
+        {actionLabel && onAction && (
+          <Button type="primary" style={{ marginTop: 16 }} onClick={onAction}>
+            {actionLabel}
+          </Button>
+        )}
+      </div>
+      <div
+        aria-hidden
+        style={{
+          height: 104,
+          borderRadius: 10,
+          background: colors.signature.forest,
+          padding: 18,
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'flex-end',
+          gap: 8,
+        }}
+      >
+        <div style={{ width: 120, height: 8, borderRadius: 999, background: 'rgba(255,255,255,0.68)' }} />
+        <div style={{ width: 82, height: 8, borderRadius: 999, background: 'rgba(255,255,255,0.5)' }} />
+      </div>
     </div>
   );
 }
