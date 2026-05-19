@@ -121,7 +121,7 @@ export function TaskList({ tasks, loading, onRowClick, onCreate }: Props) {
             icon={<EyeOutlined />}
             onClick={(event) => {
               event.stopPropagation();
-              window.location.href = `/tasks/${t.id}`;
+              onRowClick?.(t);
             }}
           />
         </Tooltip>

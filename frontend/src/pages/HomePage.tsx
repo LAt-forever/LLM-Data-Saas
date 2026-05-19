@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { Button } from 'antd';
 import { useQuery } from '@tanstack/react-query';
 import { PlusOutlined } from '@ant-design/icons';
+import { useLocation } from 'wouter';
 import { listTasks } from '../api/tasks';
 import { PageShell } from '../components/layout/PageShell';
 import { Toolbar } from '../components/layout/Toolbar';
@@ -23,6 +24,7 @@ export function HomePage() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [page, setPage] = useState(1);
   const [createOpen, setCreateOpen] = useState(false);
+  const [, navigate] = useLocation();
 
   const { data: tasks, isLoading } = useQuery({
     queryKey: ['tasks', statusFilter === 'all' ? undefined : statusFilter, page],
@@ -77,7 +79,7 @@ export function HomePage() {
         loading={isLoading}
         onCreate={() => setCreateOpen(true)}
         onRowClick={(task) => {
-          window.location.href = `/tasks/${task.id}`;
+          navigate(`/tasks/${task.id}`);
         }}
       />
 
