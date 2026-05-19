@@ -1,4 +1,4 @@
-import type { TaskOut } from '../../api/types';
+import type { TaskOut, TaskStatus } from '../../api/types';
 import { colors } from '../../theme/tokens';
 
 interface TaskSummaryProps {
@@ -6,14 +6,15 @@ interface TaskSummaryProps {
 }
 
 const SUMMARY_ITEMS = [
-  { key: 'running', label: '运行中', accent: 'coral' },
+  { key: 'running', label: '当前页运行中', accent: 'coral' },
   { key: 'succeeded', label: '当前页成功', accent: 'neutral' },
   { key: 'failed', label: '当前页失败', accent: 'neutral' },
-  { key: 'pending', label: '等待执行', accent: 'neutral' },
-] as const;
+  { key: 'pending', label: '当前页待执行', accent: 'neutral' },
+  { key: 'aborted', label: '当前页已中止', accent: 'neutral' },
+] as const satisfies readonly { key: TaskStatus; label: string; accent: 'coral' | 'neutral' }[];
 
 export function TaskSummary({ tasks }: TaskSummaryProps) {
-  const counts = tasks.reduce<Record<string, number>>((acc, task) => {
+  const counts = tasks.reduce<Partial<Record<TaskStatus, number>>>((acc, task) => {
     acc[task.status] = (acc[task.status] || 0) + 1;
     return acc;
   }, {});
