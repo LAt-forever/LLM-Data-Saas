@@ -1,6 +1,34 @@
-import { useState } from 'react';
+import { useState, type CSSProperties } from 'react';
 import { useLocation } from 'wouter';
 import { useAuth } from '../hooks/useAuth';
+import { colors, shadow, typography } from '../theme/tokens';
+
+type LoginThemeVars = CSSProperties & Record<`--login-${string}`, string>;
+
+const loginThemeVars: LoginThemeVars = {
+  '--login-font': typography.fontFamily,
+  '--login-ink': colors.primary,
+  '--login-ink-strong': colors.primaryActive,
+  '--login-body': colors.text.secondary,
+  '--login-muted': colors.text.tertiary,
+  '--login-inverse': colors.text.inverse,
+  '--login-canvas': colors.bgElevated,
+  '--login-surface': colors.bg,
+  '--login-dark': colors.bgSidebar,
+  '--login-dark-elevated': colors.bgSidebarElevated,
+  '--login-border': colors.border,
+  '--login-border-light': colors.borderLight,
+  '--login-border-strong': colors.borderStrong,
+  '--login-cream': colors.primaryBg,
+  '--login-coral': colors.signature.coral,
+  '--login-peach': colors.signature.peach,
+  '--login-error-bg': colors.errorBg,
+  '--login-focus-ring': colors.interaction.focusRing,
+  '--login-table-header': colors.interaction.tableHeader,
+  '--login-sidebar-muted': colors.interaction.sidebarHoverBg,
+  '--login-sidebar-active': colors.interaction.sidebarSelectedBg,
+  '--login-shadow': shadow.lg,
+};
 
 export function LoginPage() {
   const [username, setUsername] = useState('');
@@ -28,205 +56,102 @@ export function LoginPage() {
   };
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: '#0f172a',
-        padding: 24,
-      }}
-    >
-      <div
-        style={{
-          width: '100%',
-          maxWidth: 380,
-          background: '#1e293b',
-          border: '1px solid #334155',
-          borderRadius: 12,
-          padding: '40px',
-          boxShadow: '0 20px 60px rgba(0,0,0,0.4)',
-        }}
-      >
-        {/* Brand */}
-        <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-            <div
-              style={{
-                width: 28,
-                height: 28,
-                background: '#2563eb',
-                borderRadius: 6,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#fff',
-                fontSize: 14,
-                fontWeight: 600,
-              }}
-            >
-              ◆
+    <main className="login-workbench" style={loginThemeVars}>
+      <section className="login-workbench__stage" aria-label="LLM 样本数据登录">
+        <div className="login-workbench__preview" aria-hidden="true">
+          <aside className="login-workbench__rail">
+            <div className="login-workbench__brand-row">
+              <span className="login-workbench__mark" />
+              <span className="login-workbench__brand-text">LLM 样本数据</span>
             </div>
-            <span style={{ color: '#f1f5f9', fontSize: 16, fontWeight: 600 }}>
-              LLM Data Service
-            </span>
-          </div>
-          <div style={{ color: '#64748b', fontSize: 13 }}>
-            样本数据生成与任务管理中心
-          </div>
-          <div
-            style={{
-              marginTop: 12,
-              display: 'flex',
-              gap: 6,
-              justifyContent: 'center',
-              flexWrap: 'wrap',
-            }}
-          >
-            {['任务调度', '配置管理', '数据生成'].map((tag) => (
-              <span
-                key={tag}
-                style={{
-                  background: '#0f172a',
-                  border: '1px solid #334155',
-                  padding: '3px 10px',
-                  borderRadius: 4,
-                  fontSize: 11,
-                  color: '#94a3b8',
-                }}
-              >
-                {tag}
-              </span>
-            ))}
+            <div className="login-workbench__nav-stack">
+              <span className="login-workbench__nav-item login-workbench__nav-item--active" />
+              <span className="login-workbench__nav-item" />
+              <span className="login-workbench__nav-item login-workbench__nav-item--short" />
+              <span className="login-workbench__nav-item login-workbench__nav-item--short" />
+            </div>
+          </aside>
+
+          <div className="login-workbench__canvas">
+            <div className="login-workbench__canvas-header">
+              <span className="login-workbench__canvas-title" />
+              <span className="login-workbench__canvas-action" />
+            </div>
+            <div className="login-workbench__tabs">
+              <span className="login-workbench__tab login-workbench__tab--active" />
+              <span className="login-workbench__tab" />
+              <span className="login-workbench__tab" />
+              <span className="login-workbench__tab" />
+            </div>
+            <div className="login-workbench__metrics">
+              <span className="login-workbench__metric login-workbench__metric--hot" />
+              <span className="login-workbench__metric" />
+              <span className="login-workbench__metric" />
+            </div>
+            <div className="login-workbench__table" />
           </div>
         </div>
 
-        {/* Divider */}
-        <div style={{ height: 1, background: '#334155', marginBottom: 24 }} />
-
-        {/* Form */}
-        <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: 16 }}>
-            <label
-              style={{
-                display: 'block',
-                fontSize: 12,
-                color: '#94a3b8',
-                marginBottom: 6,
-                fontWeight: 500,
-              }}
-            >
-              管理员账号
-            </label>
-            <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              required
-              autoFocus
-              style={{
-                width: '100%',
-                height: 40,
-                background: '#0f172a',
-                border: '1px solid #475569',
-                borderRadius: 6,
-                padding: '0 12px',
-                color: '#f1f5f9',
-                fontSize: 14,
-                outline: 'none',
-                boxSizing: 'border-box',
-              }}
-              onFocus={(e) => {
-                e.currentTarget.style.borderColor = '#2563eb';
-                e.currentTarget.style.boxShadow = '0 0 0 2px rgba(37,99,235,0.2)';
-              }}
-              onBlur={(e) => {
-                e.currentTarget.style.borderColor = '#475569';
-                e.currentTarget.style.boxShadow = 'none';
-              }}
-            />
+        <form className="login-workbench__panel" onSubmit={handleSubmit}>
+          <div className="login-workbench__panel-brand">
+            <span className="login-workbench__mark" aria-hidden="true" />
+            <span>LLM 样本数据</span>
           </div>
 
-          <div style={{ marginBottom: 24 }}>
-            <label
-              style={{
-                display: 'block',
-                fontSize: 12,
-                color: '#94a3b8',
-                marginBottom: 6,
-                fontWeight: 500,
-              }}
-            >
-              密码
+          <div className="login-workbench__copy">
+            <p className="login-workbench__eyebrow">管理员入口</p>
+            <h1>进入工作台</h1>
+            <p>使用管理员账号继续管理样本生成任务、配置和运行结果。</p>
+          </div>
+
+          <div className="login-workbench__fields">
+            <label className="login-workbench__field">
+              <span>管理员账号</span>
+              <input
+                type="text"
+                name="username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
+                autoFocus
+                autoComplete="username"
+                aria-invalid={Boolean(error)}
+                aria-describedby={error ? 'login-error' : undefined}
+              />
             </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              style={{
-                width: '100%',
-                height: 40,
-                background: '#0f172a',
-                border: '1px solid #475569',
-                borderRadius: 6,
-                padding: '0 12px',
-                color: '#f1f5f9',
-                fontSize: 14,
-                outline: 'none',
-                boxSizing: 'border-box',
-              }}
-              onFocus={(e) => {
-                e.currentTarget.style.borderColor = '#2563eb';
-                e.currentTarget.style.boxShadow = '0 0 0 2px rgba(37,99,235,0.2)';
-              }}
-              onBlur={(e) => {
-                e.currentTarget.style.borderColor = '#475569';
-                e.currentTarget.style.boxShadow = 'none';
-              }}
-            />
+
+            <label className="login-workbench__field">
+              <span>密码</span>
+              <input
+                type="password"
+                name="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                autoComplete="current-password"
+                aria-invalid={Boolean(error)}
+                aria-describedby={error ? 'login-error' : undefined}
+              />
+            </label>
           </div>
 
           <button
+            className="login-workbench__submit"
             type="submit"
             disabled={isSubmitting}
-            style={{
-              width: '100%',
-              height: 40,
-              background: isSubmitting ? '#1d4ed8' : '#2563eb',
-              border: 'none',
-              borderRadius: 6,
-              color: '#fff',
-              fontSize: 14,
-              fontWeight: 500,
-              cursor: isSubmitting ? 'not-allowed' : 'pointer',
-              opacity: isSubmitting ? 0.8 : 1,
-            }}
+            aria-busy={isSubmitting}
           >
             {isSubmitting ? '登录中...' : '登录'}
           </button>
-        </form>
 
-        {/* Error */}
-        {error && (
-          <div
-            style={{
-              marginTop: 16,
-              background: '#450a0a',
-              border: '1px solid #7f1d1d',
-              borderRadius: 6,
-              padding: '10px 12px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-            }}
-          >
-            <span style={{ color: '#ef4444', fontSize: 13 }}>⚠</span>
-            <span style={{ color: '#fca5a5', fontSize: 12 }}>{error}</span>
-          </div>
-        )}
-      </div>
-    </div>
+          {error && (
+            <div className="login-workbench__error" id="login-error" role="alert">
+              <span className="login-workbench__error-dot" aria-hidden="true" />
+              <span>{error}</span>
+            </div>
+          )}
+        </form>
+      </section>
+    </main>
   );
 }
