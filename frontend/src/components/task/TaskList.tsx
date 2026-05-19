@@ -1,8 +1,8 @@
 import { Table, Button, Progress, Tooltip } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import { Link } from 'wouter';
 import { EyeOutlined } from '@ant-design/icons';
 import type { TaskOut } from '../../api/types';
+import { colors } from '../../theme/tokens';
 import { StatusTag } from '../common/StatusTag';
 import { EmptyState } from '../common/EmptyState';
 import { LoadingState } from '../common/LoadingState';
@@ -48,21 +48,21 @@ export function TaskList({ tasks, loading, onRowClick, onCreate }: Props) {
       title: 'ID',
       dataIndex: 'id',
       width: 64,
-      render: (id) => <span style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace', fontSize: 13, color: '#181d26' }}>#{id}</span>,
+      render: (id) => <span style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace', fontSize: 13, color: colors.text.primary }}>#{id}</span>,
     },
     {
       title: '分类',
       dataIndex: 'category_name',
       minWidth: 160,
       ellipsis: true,
-      render: (name: string) => <span style={{ color: '#181d26', fontWeight: 500 }}>{name}</span>,
+      render: (name: string) => <span style={{ color: colors.text.primary, fontWeight: 500 }}>{name}</span>,
     },
     {
       title: '类型',
       dataIndex: 'sample_type',
       width: 76,
       render: (t: string) => (
-        <span style={{ fontSize: 12, color: '#333840', fontWeight: 500, background: '#f3f4f6', borderRadius: 4, padding: '2px 6px' }}>{t}</span>
+        <span style={{ fontSize: 12, color: colors.text.secondary, fontWeight: 500, background: colors.bg, borderRadius: 4, padding: '2px 6px' }}>{t}</span>
       ),
     },
     {
@@ -70,7 +70,7 @@ export function TaskList({ tasks, loading, onRowClick, onCreate }: Props) {
       dataIndex: 'api_model',
       width: 120,
       ellipsis: true,
-      render: (m: string) => <span style={{ fontSize: 12, color: '#333840' }}>{m}</span>,
+      render: (m: string) => <span style={{ fontSize: 12, color: colors.text.secondary }}>{m}</span>,
     },
     {
       title: '进度',
@@ -84,10 +84,10 @@ export function TaskList({ tasks, loading, onRowClick, onCreate }: Props) {
               percent={pct}
               size={[78, 7]}
               showInfo={false}
-              strokeColor={t.status === 'succeeded' ? '#0a2e0e' : '#aa2d00'}
+              strokeColor={t.status === 'succeeded' ? colors.signature.forest : colors.signature.coral}
               style={{ margin: 0, flexShrink: 0 }}
             />
-            <span style={{ fontSize: 12, color: '#6f737b', fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace' }}>
+            <span style={{ fontSize: 12, color: colors.text.tertiary, fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace' }}>
               {t.progress_current}/{t.progress_total}
             </span>
           </div>
@@ -104,7 +104,7 @@ export function TaskList({ tasks, loading, onRowClick, onCreate }: Props) {
       title: '创建时间',
       dataIndex: 'created_at',
       width: 100,
-      render: (ts: string) => <span style={{ fontSize: 12, color: '#6f737b' }}>{formatRelativeTime(ts)}</span>,
+      render: (ts: string) => <span style={{ fontSize: 12, color: colors.text.tertiary }}>{formatRelativeTime(ts)}</span>,
     },
     {
       title: '',
@@ -112,13 +112,19 @@ export function TaskList({ tasks, loading, onRowClick, onCreate }: Props) {
       width: 52,
       align: 'center',
       render: (_, t) => (
-        <span onClick={(event) => event.stopPropagation()}>
-          <Link href={`/tasks/${t.id}`}>
-            <Tooltip title="查看详情">
-              <Button className="workbench-action-button" type="text" size="small" icon={<EyeOutlined />} />
-            </Tooltip>
-          </Link>
-        </span>
+        <Tooltip title="查看详情">
+          <Button
+            aria-label="查看详情"
+            className="workbench-action-button"
+            type="text"
+            size="small"
+            icon={<EyeOutlined />}
+            onClick={(event) => {
+              event.stopPropagation();
+              window.location.href = `/tasks/${t.id}`;
+            }}
+          />
+        </Tooltip>
       ),
     },
   ];
