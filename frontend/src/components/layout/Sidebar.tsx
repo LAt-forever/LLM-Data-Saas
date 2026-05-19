@@ -53,14 +53,14 @@ export function Sidebar() {
   return (
     <aside
       style={{
-        width: collapsed ? 64 : 214,
-        minWidth: collapsed ? 64 : 214,
+        width: collapsed ? 80 : 214,
+        minWidth: collapsed ? 80 : 214,
         background: colors.bgSidebar,
         display: 'flex',
         flexDirection: 'column',
         transition: 'width 0.2s ease',
         flexShrink: 0,
-        borderRight: '1px solid rgba(255,255,255,0.08)',
+        borderRight: `1px solid ${colors.interaction.sidebarBorder}`,
       }}
     >
       <div
@@ -69,8 +69,8 @@ export function Sidebar() {
           display: 'flex',
           alignItems: 'center',
           gap: 10,
-          padding: collapsed ? '0 18px' : '0 16px',
-          borderBottom: '1px solid rgba(255,255,255,0.08)',
+          padding: collapsed ? '0 8px' : '0 16px',
+          borderBottom: `1px solid ${colors.interaction.sidebarBorder}`,
         }}
       >
         <div
@@ -119,7 +119,14 @@ export function Sidebar() {
         selectedKeys={[activeKey]}
         openKeys={collapsed ? [] : openKeys}
         onOpenChange={setOpenKeys}
-        style={{ background: 'transparent', borderRight: 'none', flex: 1, padding: '10px 8px' }}
+        style={{
+          background: 'transparent',
+          borderRight: 'none',
+          flex: 1,
+          padding: '10px 8px',
+          width: '100%',
+          boxSizing: 'border-box',
+        }}
         items={NAV_ITEMS.map((item) => {
           if (item.children) {
             return {
@@ -145,7 +152,7 @@ export function Sidebar() {
         <div
           style={{
             padding: collapsed ? '14px 18px' : '14px 16px',
-            borderTop: '1px solid rgba(255,255,255,0.08)',
+            borderTop: `1px solid ${colors.interaction.sidebarBorder}`,
             display: 'flex',
             alignItems: 'center',
             gap: 10,
@@ -167,11 +174,11 @@ export function Sidebar() {
                   flexShrink: 0,
                 }}
               >
-                {user.username.slice(0, 1).toUpperCase()}
+                {(Array.from(user.username.trim())[0] ?? '?').toUpperCase()}
               </div>
               <span
                 style={{
-                  color: 'rgba(255,255,255,0.72)',
+                  color: colors.interaction.sidebarText,
                   fontSize: 13,
                   flex: 1,
                   overflow: 'hidden',
