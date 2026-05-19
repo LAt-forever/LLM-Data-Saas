@@ -1,4 +1,5 @@
 import { Breadcrumb, Space } from 'antd';
+import { colors } from '../../theme/tokens';
 
 interface BreadcrumbItem {
   label: string;
@@ -16,51 +17,47 @@ interface PageShellProps {
 export function PageShell({ title, subtitle, breadcrumb, extra, children }: PageShellProps) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
-      {/* Header bar */}
       <div
         style={{
-          padding: '16px 24px',
-          background: '#fff',
-          borderBottom: '1px solid #e2e8f0',
+          padding: '18px 28px',
+          background: colors.bgElevated,
+          borderBottom: `1px solid ${colors.border}`,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           gap: 16,
+          flexWrap: 'wrap',
         }}
       >
         <div style={{ minWidth: 0 }}>
           {breadcrumb && breadcrumb.length > 0 && (
             <Breadcrumb
-              style={{ marginBottom: 4 }}
+              style={{ marginBottom: 6, color: colors.text.tertiary }}
               items={breadcrumb.map((b) => ({
                 title: b.href ? <a href={b.href}>{b.label}</a> : b.label,
               }))}
             />
           )}
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
             <h1
               style={{
                 margin: 0,
-                fontSize: 20,
-                fontWeight: 600,
-                color: '#0f172a',
-                lineHeight: 1.4,
+                fontSize: 22,
+                fontWeight: 400,
+                color: colors.text.primary,
+                lineHeight: 1.25,
+                letterSpacing: 0,
               }}
             >
               {title}
             </h1>
-            {subtitle && (
-              <span style={{ fontSize: 13, color: '#94a3b8' }}>{subtitle}</span>
-            )}
+            {subtitle && <span style={{ fontSize: 13, color: colors.text.tertiary }}>{subtitle}</span>}
           </div>
         </div>
-        {extra && (
-          <Space style={{ flexShrink: 0 }}>{extra}</Space>
-        )}
+        {extra && <Space style={{ flexShrink: 0 }}>{extra}</Space>}
       </div>
 
-      {/* Content */}
-      <div style={{ flex: 1, padding: 24, background: '#f8fafc', overflow: 'auto' }}>
+      <div style={{ flex: 1, padding: 28, background: colors.bg, overflow: 'auto', minWidth: 0 }}>
         {children}
       </div>
     </div>

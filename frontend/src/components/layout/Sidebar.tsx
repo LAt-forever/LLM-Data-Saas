@@ -10,10 +10,10 @@ import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
   LogoutOutlined,
-  UserOutlined,
 } from '@ant-design/icons';
 import { Link, useLocation } from 'wouter';
 import { useAuth } from '../../hooks/useAuth';
+import { colors } from '../../theme/tokens';
 
 const NAV_ITEMS = [
   {
@@ -53,26 +53,47 @@ export function Sidebar() {
   return (
     <aside
       style={{
-        width: collapsed ? 64 : 200,
-        minWidth: collapsed ? 64 : 200,
-        background: '#0f172a',
+        width: collapsed ? 64 : 214,
+        minWidth: collapsed ? 64 : 214,
+        background: colors.bgSidebar,
         display: 'flex',
         flexDirection: 'column',
-        transition: 'width 0.2s',
+        transition: 'width 0.2s ease',
         flexShrink: 0,
+        borderRight: '1px solid rgba(255,255,255,0.08)',
       }}
     >
       <div
         style={{
-          height: 48,
+          height: 64,
           display: 'flex',
           alignItems: 'center',
-          padding: collapsed ? '0 20px' : '0 16px',
-          borderBottom: '1px solid rgba(255,255,255,0.06)',
+          gap: 10,
+          padding: collapsed ? '0 18px' : '0 16px',
+          borderBottom: '1px solid rgba(255,255,255,0.08)',
         }}
       >
+        <div
+          style={{
+            width: 28,
+            height: 28,
+            borderRadius: 6,
+            background: colors.signature.peach,
+            boxShadow: `inset 0 -8px 0 ${colors.signature.coral}`,
+            flexShrink: 0,
+          }}
+        />
         {!collapsed && (
-          <span style={{ color: '#fff', fontSize: 15, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden' }}>
+          <span
+            style={{
+              color: colors.text.inverse,
+              fontSize: 14,
+              fontWeight: 500,
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+            }}
+          >
             LLM 样本数据
           </span>
         )}
@@ -80,7 +101,14 @@ export function Sidebar() {
           type="text"
           icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
           onClick={() => setCollapsed(!collapsed)}
-          style={{ color: 'rgba(255,255,255,0.5)', marginLeft: 'auto', padding: 0, width: 24, height: 24 }}
+          style={{
+            color: 'rgba(255,255,255,0.58)',
+            marginLeft: 'auto',
+            padding: 0,
+            width: 26,
+            height: 26,
+          }}
+          title={collapsed ? '展开侧边栏' : '收起侧边栏'}
         />
       </div>
 
@@ -91,7 +119,7 @@ export function Sidebar() {
         selectedKeys={[activeKey]}
         openKeys={collapsed ? [] : openKeys}
         onOpenChange={setOpenKeys}
-        style={{ background: 'transparent', borderRight: 'none', flex: 1, paddingTop: 8 }}
+        style={{ background: 'transparent', borderRight: 'none', flex: 1, padding: '10px 8px' }}
         items={NAV_ITEMS.map((item) => {
           if (item.children) {
             return {
@@ -113,23 +141,37 @@ export function Sidebar() {
         })}
       />
 
-      {/* User info + logout */}
       {user && (
         <div
           style={{
-            padding: '12px 16px',
-            borderTop: '1px solid rgba(255,255,255,0.06)',
+            padding: collapsed ? '14px 18px' : '14px 16px',
+            borderTop: '1px solid rgba(255,255,255,0.08)',
             display: 'flex',
             alignItems: 'center',
-            gap: 8,
+            gap: 10,
           }}
         >
           {!collapsed && (
             <>
-              <UserOutlined style={{ color: 'rgba(255,255,255,0.5)', fontSize: 14 }} />
+              <div
+                style={{
+                  width: 24,
+                  height: 24,
+                  borderRadius: '50%',
+                  background: colors.bgElevated,
+                  color: colors.primary,
+                  display: 'grid',
+                  placeItems: 'center',
+                  fontSize: 11,
+                  fontWeight: 500,
+                  flexShrink: 0,
+                }}
+              >
+                {user.username.slice(0, 1).toUpperCase()}
+              </div>
               <span
                 style={{
-                  color: 'rgba(255,255,255,0.65)',
+                  color: 'rgba(255,255,255,0.72)',
                   fontSize: 13,
                   flex: 1,
                   overflow: 'hidden',
@@ -143,12 +185,7 @@ export function Sidebar() {
                 type="text"
                 icon={<LogoutOutlined />}
                 onClick={logout}
-                style={{
-                  color: 'rgba(255,255,255,0.4)',
-                  padding: 0,
-                  width: 24,
-                  height: 24,
-                }}
+                style={{ color: 'rgba(255,255,255,0.48)', padding: 0, width: 26, height: 26 }}
                 title="退出登录"
               />
             </>
@@ -158,13 +195,7 @@ export function Sidebar() {
               type="text"
               icon={<LogoutOutlined />}
               onClick={logout}
-              style={{
-                color: 'rgba(255,255,255,0.4)',
-                padding: 0,
-                width: 24,
-                height: 24,
-                margin: '0 auto',
-              }}
+              style={{ color: 'rgba(255,255,255,0.48)', padding: 0, width: 26, height: 26, margin: '0 auto' }}
               title="退出登录"
             />
           )}
