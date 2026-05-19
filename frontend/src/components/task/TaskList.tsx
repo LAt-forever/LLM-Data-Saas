@@ -26,16 +26,19 @@ interface Props {
   tasks: TaskOut[];
   loading: boolean;
   onRowClick?: (task: TaskOut) => void;
+  onCreate?: () => void;
 }
 
-export function TaskList({ tasks, loading, onRowClick }: Props) {
+export function TaskList({ tasks, loading, onRowClick, onCreate }: Props) {
   if (loading) return <LoadingState type="table" rows={6} />;
 
   if (tasks.length === 0) {
     return (
       <EmptyState
         title="暂无任务"
-        description="还没有创建任何数据生成任务"
+        description="创建第一个数据生成任务后，可以在这里追踪进度、状态和结果。"
+        actionLabel={onCreate ? '新建任务' : undefined}
+        onAction={onCreate}
       />
     );
   }
@@ -44,47 +47,47 @@ export function TaskList({ tasks, loading, onRowClick }: Props) {
     {
       title: 'ID',
       dataIndex: 'id',
-      width: 56,
-      render: (id) => <span style={{ fontFamily: 'monospace', fontSize: 13 }}>{id}</span>,
+      width: 64,
+      render: (id) => <span style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace', fontSize: 13, color: '#181d26' }}>#{id}</span>,
     },
     {
       title: '分类',
       dataIndex: 'category_name',
-      width: 120,
+      minWidth: 160,
       ellipsis: true,
+      render: (name: string) => <span style={{ color: '#181d26', fontWeight: 500 }}>{name}</span>,
     },
     {
       title: '类型',
       dataIndex: 'sample_type',
-      width: 60,
+      width: 76,
       render: (t: string) => (
-        <span style={{ fontSize: 12, color: '#64748b', fontWeight: 500 }}>{t}</span>
+        <span style={{ fontSize: 12, color: '#333840', fontWeight: 500, background: '#f3f4f6', borderRadius: 4, padding: '2px 6px' }}>{t}</span>
       ),
     },
     {
       title: '模型',
       dataIndex: 'api_model',
-      width: 100,
+      width: 120,
       ellipsis: true,
-      render: (m: string) => <span style={{ fontSize: 12 }}>{m}</span>,
+      render: (m: string) => <span style={{ fontSize: 12, color: '#333840' }}>{m}</span>,
     },
     {
       title: '进度',
       key: 'progress',
-      width: 140,
+      width: 164,
       render: (_, t) => {
-        const pct = t.progress_total > 0
-          ? Math.round((t.progress_current / t.progress_total) * 100)
-          : 0;
+        const pct = t.progress_total > 0 ? Math.round((t.progress_current / t.progress_total) * 100) : 0;
         return (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
             <Progress
               percent={pct}
-              size={[60, 6]}
+              size={[78, 7]}
               showInfo={false}
-              style={{ margin: 0, transition: 'all 0.5s ease' }}
+              strokeColor={t.status === 'succeeded' ? '#0a2e0e' : '#aa2d00'}
+              style={{ margin: 0, flexShrink: 0 }}
             />
-            <span style={{ fontSize: 12, color: '#64748b', fontFamily: 'monospace' }}>
+            <span style={{ fontSize: 12, color: '#6f737b', fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace' }}>
               {t.progress_current}/{t.progress_total}
             </span>
           </div>
@@ -94,53 +97,42 @@ export function TaskList({ tasks, loading, onRowClick }: Props) {
     {
       title: '状态',
       dataIndex: 'status',
-      width: 90,
-      render: (s: string) => (
-        <StatusTag
-          status={s as any}
-          size="sm"
-          pulse={s === 'running'}
-        />
-      ),
+      width: 100,
+      render: (s: TaskOut['status']) => <StatusTag status={s} size="sm" pulse={s === 'running'} />,
     },
     {
       title: '创建时间',
       dataIndex: 'created_at',
-      width: 90,
-      render: (ts: string) => (
-        <span style={{ fontSize: 12, color: '#94a3b8' }}>
-          {formatRelativeTime(ts)}
-        </span>
-      ),
+      width: 100,
+      render: (ts: string) => <span style={{ fontSize: 12, color: '#6f737b' }}>{formatRelativeTime(ts)}</span>,
     },
     {
-      title: '操作',
+      title: '',
       key: 'action',
-      width: 70,
+      width: 52,
       align: 'center',
       render: (_, t) => (
-        <Link href={`/tasks/${t.id}`}>
-          <Tooltip title="查看详情">
-            <Button
-              type="text"
-              size="small"
-              icon={<EyeOutlined />}
-              style={{ color: '#2563eb' }}
-            />
-          </Tooltip>
-        </Link>
+        <span onClick={(event) => event.stopPropagation()}>
+          <Link href={`/tasks/${t.id}`}>
+            <Tooltip title="查看详情">
+              <Button className="workbench-action-button" type="text" size="small" icon={<EyeOutlined />} />
+            </Tooltip>
+          </Link>
+        </span>
       ),
     },
   ];
 
   return (
     <Table
+      className="airtable-table"
       rowKey="id"
       columns={columns}
       dataSource={tasks}
       pagination={false}
       size="small"
       rowClassName={() => 'task-row'}
+      scroll={{ x: 780 }}
       onRow={(record) => ({
         onClick: () => onRowClick?.(record),
         style: { cursor: 'pointer' },

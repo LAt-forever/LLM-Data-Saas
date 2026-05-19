@@ -75,6 +75,7 @@ export function HomePage() {
       <TaskList
         tasks={tasks || []}
         loading={isLoading}
+        onCreate={() => setCreateOpen(true)}
         onRowClick={(task) => {
           window.location.href = `/tasks/${task.id}`;
         }}
@@ -82,7 +83,7 @@ export function HomePage() {
 
       {/* Pagination */}
       {(tasks?.length || 0) > 0 && (
-        <div style={{ marginTop: 16, display: 'flex', justifyContent: 'center', gap: 8 }}>
+        <div style={{ marginTop: 16, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 10 }}>
           <Button
             size="small"
             disabled={page <= 1}
@@ -90,7 +91,7 @@ export function HomePage() {
           >
             上一页
           </Button>
-          <span style={{ fontSize: 13, color: '#64748b', padding: '4px 8px' }}>
+          <span style={{ fontSize: 12, color: '#6f737b', padding: '4px 8px' }}>
             第 {page} 页
           </span>
           <Button
