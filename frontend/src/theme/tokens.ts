@@ -1,42 +1,55 @@
 export const colors = {
-  primary: '#2563eb',
-  primaryHover: '#1d4ed8',
-  primaryActive: '#1e40af',
-  primaryBg: '#eff6ff',
+  primary: '#181d26',
+  primaryHover: '#0d1218',
+  primaryActive: '#0d1218',
+  primaryBg: '#f5e9d4',
 
-  success: '#10b981',
-  successBg: '#ecfdf5',
-  warning: '#f59e0b',
-  warningBg: '#fffbeb',
-  error: '#ef4444',
-  errorBg: '#fef2f2',
-  info: '#3b82f6',
-  infoBg: '#eff6ff',
+  success: '#0a2e0e',
+  successBg: '#e7f0ea',
+  warning: '#d9a441',
+  warningBg: '#fff7d6',
+  error: '#aa2d00',
+  errorBg: '#f5e6df',
+  info: '#254fad',
+  infoBg: '#eef4ff',
 
-  text: {
-    primary: '#0f172a',
-    secondary: '#475569',
-    tertiary: '#94a3b8',
-    disabled: '#cbd5e1',
+  signature: {
+    coral: '#aa2d00',
+    forest: '#0a2e0e',
+    cream: '#f5e9d4',
+    peach: '#fcab79',
+    mint: '#a8d8c4',
+    yellow: '#f4d35e',
+    mustard: '#d9a441',
   },
 
-  border: '#e2e8f0',
-  borderLight: '#f1f5f9',
+  text: {
+    primary: '#181d26',
+    secondary: '#333840',
+    tertiary: '#6f737b',
+    disabled: '#b8bdc5',
+    inverse: '#ffffff',
+  },
+
+  border: '#dddddd',
+  borderStrong: '#9297a0',
+  borderLight: '#ececec',
   bg: '#f8fafc',
   bgElevated: '#ffffff',
-  bgSidebar: '#0f172a',
+  bgSidebar: '#181d26',
+  bgSidebarElevated: '#1d1f25',
 };
 
-export const statusColors: Record<string, { dot: string; bg: string; text: string }> = {
-  pending: { dot: '#94a3b8', bg: '#f8fafc', text: '#64748b' },
-  running: { dot: '#3b82f6', bg: '#eff6ff', text: '#2563eb' },
-  succeeded: { dot: '#10b981', bg: '#ecfdf5', text: '#059669' },
-  failed: { dot: '#ef4444', bg: '#fef2f2', text: '#dc2626' },
-  aborted: { dot: '#f59e0b', bg: '#fffbeb', text: '#d97706' },
+export const statusColors: Record<string, { dot: string; bg: string; text: string; border?: string }> = {
+  pending: { dot: '#9297a0', bg: '#f8fafc', text: '#41454d', border: '#dddddd' },
+  running: { dot: '#aa2d00', bg: '#f5e9d4', text: '#181d26', border: '#d8c8aa' },
+  succeeded: { dot: '#0a2e0e', bg: '#e7f0ea', text: '#0a2e0e', border: '#b9d3c1' },
+  failed: { dot: '#aa2d00', bg: '#f5e6df', text: '#aa2d00', border: '#dfb8a9' },
+  aborted: { dot: '#d9a441', bg: '#fff7d6', text: '#6f4f12', border: '#ead58e' },
 };
 
 export const typography = {
-  fontFamily: `-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji"`,
+  fontFamily: `-apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, "Noto Sans", sans-serif`,
   sizes: {
     xs: '12px',
     sm: '13px',
@@ -44,6 +57,11 @@ export const typography = {
     md: '16px',
     lg: '20px',
     xl: '24px',
+  },
+  weights: {
+    normal: 400,
+    medium: 500,
+    semibold: 600,
   },
 };
 
@@ -58,15 +76,16 @@ export const spacing = {
 
 export const border = {
   radius: {
+    xs: '2px',
     sm: '4px',
     md: '6px',
-    lg: '8px',
+    lg: '10px',
     full: '9999px',
   },
 };
 
 export const shadow = {
-  sm: '0 1px 2px rgba(0,0,0,0.04)',
-  md: '0 1px 3px rgba(0,0,0,0.08)',
-  lg: '0 4px 12px rgba(0,0,0,0.08)',
+  sm: 'none',
+  md: 'none',
+  lg: '0 8px 24px rgba(24,29,38,0.08)',
 };
