@@ -7,6 +7,7 @@ import { PageShell } from '../components/layout/PageShell';
 import { Toolbar } from '../components/layout/Toolbar';
 import { TaskList } from '../components/task/TaskList';
 import { TaskCreateDrawer } from '../components/task/TaskCreateDrawer';
+import { TaskSummary } from '../components/task/TaskSummary';
 import type { TaskOut } from '../api/types';
 
 const FILTERS = [
@@ -68,6 +69,8 @@ export function HomePage() {
           setPage(1);
         }}
       />
+
+      {!isLoading && (tasks?.length || 0) > 0 && <TaskSummary tasks={tasks || []} />}
 
       <TaskList
         tasks={tasks || []}
