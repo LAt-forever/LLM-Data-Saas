@@ -1,225 +1,225 @@
-# Airtable Workbench UI Optimization Design
+# Airtable Workbench UI 优化设计
 
-- Date: 2026-05-19
-- Reference: `docs/design-references/airtable-DESIGN.md`
-- Approved approach: Workbench Reskin
-- Scope order: A first, then B
+- 日期：2026-05-19
+- 参考：`docs/design-references/airtable-DESIGN.md`
+- 已批准方案：Workbench Reskin
+- 范围顺序：先做 A，再做 B
 
-## Goal
+## 目标
 
-Optimize the existing frontend presentation toward the Airtable reference style without changing backend APIs, routing, authentication, or task creation behavior.
+在不改变后端 API、路由、认证或任务创建行为的前提下，将现有前端展示优化为 Airtable 参考风格。
 
-The work should make the app feel like a sober workflow software workbench: white canvas, dark ink, restrained borders, compact tables, near-black primary actions, and limited signature accents from the Airtable palette. It should not become a marketing page, a card-heavy dashboard, or a blue SaaS admin template.
+这次优化应让应用呈现为克制的工作流软件工作台：白色画布、深墨色文字、克制边框、紧凑表格、近黑色主操作按钮，并仅少量使用 Airtable 调色板里的标志性强调色。它不应变成营销页、卡片堆叠式仪表盘或蓝色 SaaS 后台模板。
 
-## Approved Scope
+## 已批准范围
 
-### A. Global Visual System And Layout Shell
+### A. 全局视觉系统和布局外壳
 
-Apply the Airtable-style vocabulary across the existing app shell:
+在现有应用外壳上应用 Airtable 风格语言：
 
-- Replace the current blue-led palette with Airtable-inspired tokens.
-- Tune Ant Design theme tokens for buttons, tables, tags, menus, drawers, tabs, progress, inputs, and layout backgrounds.
-- Keep the current sidebar-based information architecture.
-- Restyle `AppLayout`, `Sidebar`, `PageShell`, and `Toolbar` to create a unified workbench shell.
-- Preserve existing routes and page-level data fetching.
-- Keep responsive collapse behavior for the sidebar and prevent text overflow on narrow screens.
+- 将当前以蓝色为主的调色板替换为 Airtable 启发的 token。
+- 调整 Ant Design 主题 token，覆盖按钮、表格、标签、菜单、抽屉、标签页、进度条、输入框和布局背景。
+- 保留当前基于侧边栏的信息架构。
+- 重设 `AppLayout`、`Sidebar`、`PageShell` 和 `Toolbar` 样式，形成统一的工作台外壳。
+- 保留现有路由和页面级数据获取方式。
+- 保留侧边栏响应式收起行为，并防止窄屏文字溢出。
 
-### B. Task Center Homepage
+### B. 任务中心首页
 
-After the global shell is in place, refine the task center homepage:
+全局外壳就位后，细化任务中心首页：
 
-- Convert status filters into Airtable-style view tabs with counts.
-- Keep the task table dense and scannable while improving row rhythm, borders, status tags, progress display, and action affordances.
-- Add a lightweight task summary area for running, completed, failed, and queued states when task data is available.
-- Restyle empty state to feel like a calm workbench prompt rather than a generic icon state.
-- Keep the existing task creation drawer entry point and existing pagination behavior.
+- 将状态筛选转换为带数量的 Airtable 式 view tabs。
+- 保持任务表格高密度、易扫读，同时优化行节奏、边框、状态标签、进度展示和操作入口。
+- 当任务数据可用时，增加轻量任务摘要区，展示运行中、已完成、失败和排队/等待状态。
+- 重设空状态样式，让它像克制的工作台提示，而不是通用图标空状态。
+- 保留现有任务创建抽屉入口和现有分页行为。
 
-## Design System
+## 设计系统
 
-### Color Palette
+### 调色板
 
-Use the Airtable reference as the source of truth:
+以 Airtable 参考文件作为视觉源头：
 
-- Primary / ink: `#181d26`
-- Primary active: `#0d1218`
-- Body text: `#333840`
-- Muted text: `#41454d` or a softened derivative for tertiary labels
-- Hairline border: `#dddddd`
-- Strong border: `#9297a0`
-- Canvas: `#ffffff`
-- Soft surface: `#f8fafc`
-- Dark sidebar surface: `#181d26`
-- Dark elevated surface: `#1d1f25`
-- Signature coral: `#aa2d00`
-- Signature forest: `#0a2e0e`
-- Signature cream: `#f5e9d4`
-- Signature peach: `#fcab79`
-- Signature mint / yellow may be reserved for status support, not dominant layout color.
+- 主色 / 墨色：`#181d26`
+- 主色按下态：`#0d1218`
+- 正文文字：`#333840`
+- 弱化文字：`#41454d`，或用于三级标签的柔和派生色
+- 细边框：`#dddddd`
+- 强边框：`#9297a0`
+- 画布：`#ffffff`
+- 柔和表面：`#f8fafc`
+- 深色侧边栏表面：`#181d26`
+- 深色抬升表面：`#1d1f25`
+- 标志性珊瑚色：`#aa2d00`
+- 标志性森林绿：`#0a2e0e`
+- 标志性奶油色：`#f5e9d4`
+- 标志性蜜桃色：`#fcab79`
+- 标志性薄荷色 / 黄色可保留给状态辅助，不作为主导布局色。
 
-Current blue primary colors should be removed from the main UI treatment. Blue may remain only where required by browser defaults or external AntD internals that are not practical to override in this pass.
+当前蓝色主色应从主要 UI 表现中移除。只有在浏览器默认样式或本轮不适合覆盖的 AntD 内部样式确实需要时，蓝色才可残留。
 
-### Typography
+### 字体排版
 
-The reference names Haas Grotesk, but the implementation should not add a new font dependency in this pass. Use the existing system font stack and make the style closer to the reference through weight, size, and line-height:
+参考文件提到 Haas Grotesk，但本轮实现不新增字体依赖。继续使用现有系统字体栈，并通过字重、字号和行高靠近参考风格：
 
-- Page titles: 20-24px, weight 400 or 500, line-height around 1.25.
-- Section labels and table text: 12-14px, compact but readable.
-- Buttons: 14-16px, weight 500.
-- Avoid negative letter spacing.
-- Avoid bold headings unless needed for hierarchy.
+- 页面标题：20-24px，字重 400 或 500，行高约 1.25。
+- 区块标签和表格文字：12-14px，紧凑但可读。
+- 按钮：14-16px，字重 500。
+- 避免负字距。
+- 除非层级需要，否则避免粗重标题。
 
-### Spacing
+### 间距
 
-Continue the existing 8px-based spacing system:
+继续使用现有 8px 基准间距系统：
 
-- Page header: 16-24px vertical rhythm.
-- Content area: 24-28px desktop padding, reduced on small screens.
-- Toolbar/view tabs: 6-8px gaps.
-- Table rows: compact 38-48px row heights.
+- 页面头部：16-24px 垂直节奏。
+- 内容区：桌面端 24-28px 内边距，小屏适当缩减。
+- 工具栏 / view tabs：6-8px 间距。
+- 表格行：紧凑的 38-48px 行高。
 
-### Radius And Elevation
+### 圆角与层级
 
-- Keep corners small: 4px, 6px, 8px, and occasional 10px for framed work surfaces.
-- Use pill radius only for true pills or circular icon controls.
-- Avoid stacked cards and page sections styled as decorative floating cards.
-- Prefer borders and surface contrast over shadows.
-- Use shadows sparingly or not at all.
+- 保持小圆角：4px、6px、8px，少量带框工作表面可用 10px。
+- 只有真正的胶囊控件或圆形图标按钮使用 pill 圆角。
+- 避免堆叠卡片，以及把页面区块做成装饰性悬浮卡片。
+- 优先用边框和表面对比建立层级，而不是阴影。
+- 尽量少用阴影，或完全不用。
 
-### Motion
+### 动效
 
-- Use subtle 150-200ms hover/focus transitions for controls.
-- Preserve existing running-status pulse only if it remains restrained.
-- Do not add decorative animation.
+- 控件使用克制的 150-200ms hover/focus 过渡。
+- 仅在足够克制时保留现有运行状态脉冲。
+- 不添加装饰性动画。
 
-## Architecture
+## 架构
 
-This is a frontend-only visual optimization. The implementation should keep the current React + Ant Design structure:
+这是纯前端视觉优化。实现应保留当前 React + Ant Design 结构：
 
-- `frontend/src/theme/tokens.ts` becomes the shared Airtable-inspired token source.
-- `frontend/src/theme/antdTheme.ts` maps those decisions into AntD component tokens.
-- `frontend/src/components/layout/AppLayout.tsx` remains the high-level shell.
-- `frontend/src/components/layout/Sidebar.tsx` keeps the navigation model but updates dark workbench styling.
-- `frontend/src/components/layout/PageShell.tsx` provides the white page header and soft content canvas.
-- `frontend/src/components/layout/Toolbar.tsx` becomes the reusable view-tab/search/action row.
-- `frontend/src/components/task/TaskList.tsx` receives task-center-specific table treatment.
-- `frontend/src/components/common/StatusTag.tsx`, `EmptyState.tsx`, and related common components may be tuned to match the new system.
-- `frontend/src/index.css` can hold global AntD overrides and keyframes that cannot be expressed cleanly through component tokens.
+- `frontend/src/theme/tokens.ts` 作为共享的 Airtable 风格 token 来源。
+- `frontend/src/theme/antdTheme.ts` 将这些视觉决策映射到 AntD 组件 token。
+- `frontend/src/components/layout/AppLayout.tsx` 保持为高层应用外壳。
+- `frontend/src/components/layout/Sidebar.tsx` 保留导航模型，但更新为深色工作台样式。
+- `frontend/src/components/layout/PageShell.tsx` 提供白色页面头部和柔和内容画布。
+- `frontend/src/components/layout/Toolbar.tsx` 成为可复用的 view-tab / 搜索 / 操作行。
+- `frontend/src/components/task/TaskList.tsx` 承接任务中心专属表格样式。
+- `frontend/src/components/common/StatusTag.tsx`、`EmptyState.tsx` 及相关通用组件可调整以匹配新系统。
+- `frontend/src/index.css` 可承载无法通过组件 token 清晰表达的全局 AntD 覆盖和 keyframes。
 
-No new routing layer, global state system, or UI framework should be introduced.
+不引入新的路由层、全局状态系统或 UI 框架。
 
-## Component Design
+## 组件设计
 
-### App Shell
+### 应用外壳
 
-The app remains a left-sidebar workbench.
+应用仍然是左侧边栏工作台。
 
-The sidebar uses the Airtable dark ink surface, a small peach/coral brand mark, restrained nav hover states, and compact user/logout controls. Collapsed mode stays supported. The sidebar should not add marketing copy, large logos, or decorative gradients.
+侧边栏使用 Airtable 深墨色表面、小型蜜桃/珊瑚品牌标记、克制的导航 hover 状态，以及紧凑的用户/退出控件。继续支持收起模式。侧边栏不添加营销文案、大型 logo 或装饰性渐变。
 
-### Page Shell
+### 页面外壳
 
-`PageShell` becomes a consistent white header plus soft content canvas:
+`PageShell` 统一为白色头部加柔和内容画布：
 
-- Header has title, optional subtitle, breadcrumb, and right-aligned actions.
-- Title weight is lighter than the current implementation.
-- Subtitle stays muted and compact.
-- Content background remains soft, with child components responsible for their own framed work surfaces.
+- 头部包含标题、可选副标题、面包屑和右对齐操作。
+- 标题字重比当前实现更轻。
+- 副标题保持弱化且紧凑。
+- 内容背景保持柔和，子组件自行负责自己的带框工作表面。
 
-### Toolbar / View Tabs
+### 工具栏 / View Tabs
 
-`Toolbar` should support Airtable-style view tabs:
+`Toolbar` 应支持 Airtable 式 view tabs：
 
-- Active tab uses cream fill and subtle border.
-- Inactive tabs are quiet text buttons.
-- Counts remain visible but secondary.
-- Search input and action controls align to the right when present.
-- Layout wraps cleanly on mobile.
+- 激活 tab 使用奶油色填充和细微边框。
+- 未激活 tab 是安静的文本按钮。
+- 数量保持可见，但作为次要信息。
+- 搜索输入框和操作控件在存在时右对齐。
+- 移动端布局应自然换行。
 
-### Buttons
+### 按钮
 
-Primary actions use near-black background with white text. Hover/active states deepen the ink color. Secondary buttons are white with a hairline border. Danger actions remain semantically red/coral but should not dominate normal screens.
+主操作使用近黑色背景和白色文字。Hover/active 状态加深墨色。次要按钮为白底细边框。危险操作保持语义化红/珊瑚色，但不应主导常规页面。
 
-### Tables
+### 表格
 
-Tables are central to the workbench feel:
+表格是工作台气质的核心：
 
-- Compact rows.
-- Clear header background.
-- Hairline borders.
-- Low-radius framed table container.
-- No heavy card shadow.
-- Hover state should be subtle and not blue.
+- 紧凑行。
+- 清晰表头背景。
+- 细边框。
+- 小圆角带框表格容器。
+- 不使用厚重卡片阴影。
+- Hover 状态应克制且不使用蓝色。
 
-### Status Tags
+### 状态标签
 
-Status tags should retain meaning while matching the palette:
+状态标签应在保留语义的同时匹配调色板：
 
-- `running`: cream or light coral support with dark/coral text.
-- `succeeded`: light forest/mint support with forest text.
-- `failed`: light coral support with coral text.
-- `pending`: soft neutral support with muted ink.
-- `aborted`: warm support from mustard/yellow derivatives.
+- `running`：奶油色或浅珊瑚色支撑，搭配深色/珊瑚文字。
+- `succeeded`：浅森林绿/薄荷色支撑，搭配森林绿文字。
+- `failed`：浅珊瑚色支撑，搭配珊瑚文字。
+- `pending`：柔和中性色支撑，搭配弱化墨色。
+- `aborted`：使用芥末黄/黄色派生的暖色支撑。
 
-Running status may keep a subtle dot pulse.
+运行中状态可以保留克制的圆点脉冲。
 
-### Task Center Summary
+### 任务中心摘要
 
-The homepage may include a compact summary row above the table. It should be functional and derived from current task data:
+首页可以在表格上方加入紧凑摘要行。它应具备实际功能，并从当前任务数据派生：
 
-- Running count.
-- Succeeded count for current loaded page.
-- Failed count.
-- Pending/queued count.
+- 运行中数量。
+- 当前已加载页的成功数量。
+- 失败数量。
+- 待执行/排队数量。
 
-This summary must not invent cross-page totals if the current API response only contains the loaded page. Labels should avoid implying all-time/global totals unless the API actually provides them.
+如果当前 API 响应只包含已加载页面，该摘要不能虚构跨页总数。除非 API 实际提供全局统计，标签应避免暗示全时段/全局总量。
 
-### Empty State
+### 空状态
 
-Empty states should use concise text, a direct action when available, and a small signature-color panel or restrained icon treatment. Avoid oversized generic AntD empty artwork.
+空状态应使用简洁文案、可用时提供直接操作，并搭配小型标志性色面板或克制图标处理。避免使用过大的通用 AntD 空状态插画。
 
-## Data Flow
+## 数据流
 
-The task center continues to use the existing `useQuery` call to `listTasks` with status and page parameters. The status view tabs update the same `statusFilter` state and reset `page` to 1.
+任务中心继续使用现有 `useQuery` 调用 `listTasks`，并传入 status 与 page 参数。状态 view tabs 更新同一个 `statusFilter` 状态，并将 `page` 重置为 1。
 
-Derived UI values, such as filter counts and summary cards, should be calculated from the currently loaded `tasks` array. This means counts are page-local unless the backend later exposes aggregate counts.
+筛选数量、摘要卡片等派生 UI 值应从当前已加载的 `tasks` 数组计算。因此，除非后端之后提供聚合统计，否则这些数量都是当前页局部数据。
 
-Row click behavior continues to navigate to task detail. The explicit view action should remain available and should avoid double-triggering row navigation if clicked.
+行点击行为继续导航到任务详情。显式查看操作应保持可用，并在点击时避免重复触发行导航。
 
-## Error Handling
+## 错误处理
 
-This design does not change API error behavior. Existing React Query and page-level error handling should remain in place.
+本设计不改变 API 错误行为。现有 React Query 和页面级错误处理保持不变。
 
-Visual states should stay clear for:
+以下视觉状态应保持清晰：
 
-- Loading: table skeleton/loading state should use the new neutral palette.
-- Empty: use the new workbench empty state.
-- Failed task status: use the new coral status treatment.
-- Disabled pagination: keep disabled controls visibly muted.
+- Loading：表格骨架屏 / 加载状态应使用新的中性色调色板。
+- Empty：使用新的工作台空状态。
+- Failed task status：使用新的珊瑚色状态处理。
+- Disabled pagination：禁用控件保持明显弱化。
 
-## Accessibility And Responsive Behavior
+## 可访问性与响应式行为
 
-- Preserve button semantics for interactive controls.
-- Keep focus indicators visible and compatible with the ink/cream palette.
-- Maintain sufficient contrast for text, active tabs, and status tags.
-- Ensure sidebar collapsed mode remains usable.
-- On narrow screens, headers and toolbars stack; task table may hide lower-priority columns as the existing design already favors compact operational use.
-- Button labels and tab labels must not overflow their containers.
+- 交互控件保留按钮语义。
+- 保持 focus 指示可见，并兼容墨色/奶油色调色板。
+- 文字、激活 tabs 和状态标签保持足够对比度。
+- 确保侧边栏收起模式仍然可用。
+- 窄屏下，头部和工具栏堆叠；任务表格可以隐藏低优先级列，因为现有设计本身偏向紧凑运营使用。
+- 按钮标签和 tab 标签不得溢出容器。
 
-## Testing And Verification
+## 测试与验证
 
-Implementation should be verified with:
+实现应通过以下方式验证：
 
-- `npm run build` in `frontend`.
-- TypeScript compilation through the existing build.
-- Browser inspection of the task center at desktop width.
-- Browser inspection at a narrow/mobile width for sidebar collapse, header wrapping, toolbar wrapping, and table legibility.
-- Manual check that task row click and explicit detail action still navigate correctly.
+- 在 `frontend` 中运行 `npm run build`。
+- 通过现有构建完成 TypeScript 编译。
+- 在桌面宽度下用浏览器检查任务中心。
+- 在窄屏/移动宽度下用浏览器检查侧边栏收起、头部换行、工具栏换行和表格可读性。
+- 手动检查任务行点击和显式详情操作仍能正确导航。
 
-If a local backend is not available, visual verification may use the frontend's existing empty/loading states where possible, and the limitation should be reported.
+如果本地后端不可用，视觉验证可尽量使用前端现有空状态/加载状态，并报告该限制。
 
-## Non-Goals
+## 非目标
 
-- Do not redesign the task creation drawer beyond token/theme consistency unless a small style issue blocks the approved look.
-- Do not change backend APIs or add aggregate count endpoints.
-- Do not redesign task detail or settings pages beyond global shell/theme consistency in this pass.
-- Do not introduce a new design library.
-- Do not add decorative gradients, large hero sections, or marketing-style content.
+- 除非小样式问题阻碍已批准视觉效果，否则不重新设计任务创建抽屉，只做 token/theme 一致性处理。
+- 不改变后端 API，也不新增聚合计数端点。
+- 本轮不重设任务详情或设置页面设计，超出全局外壳/theme 一致性的部分不做。
+- 不引入新的设计库。
+- 不添加装饰性渐变、大型 hero 区块或营销式内容。
