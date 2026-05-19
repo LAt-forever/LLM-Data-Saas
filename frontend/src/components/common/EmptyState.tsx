@@ -22,7 +22,7 @@ export function EmptyState({
         background: colors.bgElevated,
         padding: 28,
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(min(180px, 100%), 1fr))',
         gap: 20,
         alignItems: 'center',
       }}

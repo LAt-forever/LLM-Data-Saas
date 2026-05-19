@@ -18,6 +18,8 @@ interface ToolbarProps {
   createLabel?: string;
 }
 
+const ACTIVE_FILTER_BORDER = '#d8c8aa';
+
 export function Toolbar({
   filters,
   onFilterChange,
@@ -41,13 +43,15 @@ export function Toolbar({
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', minWidth: 0 }}>
         {filters?.map((f) => (
           <button
+            type="button"
             key={f.key}
+            aria-pressed={!!f.active}
             onClick={() => onFilterChange?.(f.key)}
             style={{
               height: 32,
               padding: '0 12px',
               borderRadius: 8,
-              border: f.active ? `1px solid #d8c8aa` : '1px solid transparent',
+              border: f.active ? `1px solid ${ACTIVE_FILTER_BORDER}` : '1px solid transparent',
               fontSize: 13,
               fontWeight: 500,
               cursor: 'pointer',
