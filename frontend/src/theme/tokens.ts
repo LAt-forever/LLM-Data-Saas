@@ -23,6 +23,17 @@ export const colors = {
     mustard: '#d9a441',
   },
 
+  interaction: {
+    focusRing: 'rgba(24,29,38,0.08)',
+    sidebarBorder: 'rgba(255,255,255,0.08)',
+    sidebarText: 'rgba(255,255,255,0.68)',
+    sidebarHoverBg: 'rgba(255,255,255,0.08)',
+    sidebarSelectedBg: 'rgba(255,255,255,0.12)',
+    progressTrack: '#e0e2e6',
+    tableHeader: '#fafafa',
+    tableHover: '#fbfaf7',
+  },
+
   text: {
     primary: '#181d26',
     secondary: '#333840',
@@ -40,13 +51,16 @@ export const colors = {
   bgSidebarElevated: '#1d1f25',
 };
 
-export const statusColors: Record<string, { dot: string; bg: string; text: string; border?: string }> = {
+type StatusColor = { dot: string; bg: string; text: string; border?: string };
+export type StatusColorKey = 'pending' | 'running' | 'succeeded' | 'failed' | 'aborted';
+
+export const statusColors = {
   pending: { dot: '#9297a0', bg: '#f8fafc', text: '#41454d', border: '#dddddd' },
   running: { dot: '#aa2d00', bg: '#f5e9d4', text: '#181d26', border: '#d8c8aa' },
   succeeded: { dot: '#0a2e0e', bg: '#e7f0ea', text: '#0a2e0e', border: '#b9d3c1' },
   failed: { dot: '#aa2d00', bg: '#f5e6df', text: '#aa2d00', border: '#dfb8a9' },
   aborted: { dot: '#d9a441', bg: '#fff7d6', text: '#6f4f12', border: '#ead58e' },
-};
+} satisfies Record<StatusColorKey, StatusColor>;
 
 export const typography = {
   fontFamily: `-apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, "Noto Sans", sans-serif`,

@@ -31,6 +31,9 @@ export const antdTheme: ThemeConfig = {
     colorBgContainer: colors.bgElevated,
     colorBgElevated: colors.bgElevated,
     colorBgLayout: colors.bg,
+    boxShadow: 'none',
+    boxShadowSecondary: 'none',
+    boxShadowTertiary: 'none',
   },
   components: {
     Button: {
@@ -43,7 +46,6 @@ export const antdTheme: ThemeConfig = {
     Card: {
       borderRadiusLG: 10,
       paddingLG: 20,
-      boxShadow: 'none',
     },
     Drawer: {
       borderRadius: 0,
@@ -53,13 +55,13 @@ export const antdTheme: ThemeConfig = {
       borderRadius: 6,
       activeBorderColor: colors.borderStrong,
       hoverBorderColor: colors.borderStrong,
-      activeShadow: '0 0 0 2px rgba(24,29,38,0.08)',
+      activeShadow: `0 0 0 2px ${colors.interaction.focusRing}`,
     },
     InputNumber: {
       borderRadius: 6,
       activeBorderColor: colors.borderStrong,
       hoverBorderColor: colors.borderStrong,
-      activeShadow: '0 0 0 2px rgba(24,29,38,0.08)',
+      activeShadow: `0 0 0 2px ${colors.interaction.focusRing}`,
     },
     Menu: {
       iconSize: 17,
@@ -67,15 +69,15 @@ export const antdTheme: ThemeConfig = {
       itemBorderRadius: 6,
       darkItemBg: colors.bgSidebar,
       darkSubMenuItemBg: colors.bgSidebar,
-      darkItemColor: 'rgba(255,255,255,0.68)',
-      darkItemHoverBg: 'rgba(255,255,255,0.08)',
-      darkItemSelectedBg: 'rgba(255,255,255,0.12)',
-      darkItemSelectedColor: '#ffffff',
+      darkItemColor: colors.interaction.sidebarText,
+      darkItemHoverBg: colors.interaction.sidebarHoverBg,
+      darkItemSelectedBg: colors.interaction.sidebarSelectedBg,
+      darkItemSelectedColor: colors.text.inverse,
     },
     Progress: {
-      borderRadius: 999,
+      lineBorderRadius: 999,
       defaultColor: colors.signature.coral,
-      remainingColor: '#e0e2e6',
+      remainingColor: colors.interaction.progressTrack,
     },
     Select: {
       borderRadius: 6,
@@ -83,9 +85,9 @@ export const antdTheme: ThemeConfig = {
     },
     Table: {
       borderRadius: 10,
-      headerBg: '#fafafa',
+      headerBg: colors.interaction.tableHeader,
       headerColor: colors.text.tertiary,
-      rowHoverBg: '#fbfaf7',
+      rowHoverBg: colors.interaction.tableHover,
       padding: 12,
       paddingXS: 8,
       paddingSM: 8,
@@ -102,8 +104,9 @@ export const antdTheme: ThemeConfig = {
     },
     Tag: {
       borderRadiusSM: 4,
-      fontSize: 12,
-      lineHeight: 1.5,
+      defaultBg: colors.bgElevated,
+      defaultColor: colors.text.secondary,
+      solidTextColor: colors.text.inverse,
     },
   },
 };
