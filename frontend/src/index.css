@@ -349,6 +349,11 @@ select {
   background: var(--login-ink-strong);
 }
 
+.login-workbench__submit:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--login-focus-ring);
+}
+
 .login-workbench__submit:active:not(:disabled) {
   transform: translateY(1px);
 }
